@@ -32,4 +32,4 @@ See the [Projects](/portfolio/) page for details, or my [CV](/cv/) for the full 
 Contact
 ======
 
-The best way to reach me is by email: **shan6@seas.upenn.edu**
+The best way to reach me is by email: **shan6@engineering.upenn.edu**
