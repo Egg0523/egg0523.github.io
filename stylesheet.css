@@ -148,112 +148,20 @@ strong { font-weight: 600; }
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
-/* ---------- Nav ---------- */
-.nav {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-bottom: 6px;
-  animation: fadeIn 0.6s var(--ease-out);
-}
-
-.nav a {
-  font-family: 'Syne', sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  color: var(--color-text-soft);
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  position: relative;
-  transition: color var(--duration-fast) ease,
-              background var(--duration-fast) ease;
-}
-
-.nav a::after {
-  content: '';
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 2px;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-soft));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--duration-normal) var(--ease-out);
-}
-
-.nav a:hover {
-  color: var(--color-accent);
-  background: rgba(26, 86, 219, 0.06);
-  text-decoration: none;
-}
-
-.nav a:hover::after,
-.nav a.active::after { transform: scaleX(1); }
-
-.nav a.active { color: var(--color-accent); }
-
-/* ---------- Page Header (subpages) ---------- */
-.page-header {
-  margin-bottom: 35px;
-  padding: 10px 0 25px;
-  border-bottom: 2px solid var(--color-border-soft);
-  animation: fadeIn 0.6s var(--ease-out);
-}
-
-.page-header .name { margin-bottom: 6px; }
-.page-header .intro { margin-bottom: 12px !important; }
-.page-header .social { margin-top: 4px; }
-
-.pdf-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  width: auto !important;
-  height: auto !important;
-  padding: 7px 16px !important;
-  margin-left: 4px;
-  font-family: 'Syne', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff !important;
-  background: linear-gradient(135deg, var(--color-accent), #2f6fe4) !important;
-  border-radius: 20px !important;
-  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.25);
-}
-
-.pdf-button:hover {
-  color: #fff !important;
-  text-decoration: none;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
 .contact-line { margin: 0 0 8px; font-size: 16px; }
 
 /* ---------- Header ---------- */
 .header {
-  display: flex;
-  gap: 40px;
   margin-bottom: 35px;
   padding: 10px 0 25px;
   border-bottom: 2px solid var(--color-border-soft);
   animation: fadeIn 0.6s var(--ease-out);
-  align-items: flex-start;
+  overflow: hidden;            /* contain the floated photo */
 }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-.header-left {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
 }
 
 .header p { margin: 0 0 12px; font-size: 16px; }
@@ -285,12 +193,18 @@ strong { font-weight: 600; }
   font-style: italic;
 }
 
+.cv-line { margin-top: 14px; }
+
+.nowrap { white-space: nowrap; }
+
 .header .social {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 18px;
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
+  clear: both;                 /* never tuck under the photo */
 }
 
 .header .social a {
@@ -313,19 +227,17 @@ strong { font-weight: 600; }
   color: var(--color-accent-hover);
 }
 
-.header-right {
-  flex-shrink: 0;
-  position: relative;
-  padding-top: 12px;
-}
-
+/* ---------- Profile photo (floated right, text wraps) ---------- */
 .profile-tilt-wrapper {
+  float: right;
   perspective: 800px;
   position: relative;
+  margin: 6px 0 18px 32px;
   border-radius: var(--radius-sm);
+  shape-margin: 32px;
 }
 
-.header-right img {
+.profile-tilt-wrapper img {
   width: 200px;
   height: 200px;
   object-fit: cover;
@@ -625,15 +537,13 @@ footer p { margin: 0; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 720px) {
-  .header {
-    flex-direction: column-reverse;
-    align-items: center;
-    gap: 20px;
-    text-align: left;
+  .profile-tilt-wrapper {
+    float: none;
+    margin: 0 auto 20px;
+    width: 160px;
   }
 
-  .header-right { padding-top: 0; align-self: center; }
-  .header-right img { width: 160px; height: 160px; }
+  .profile-tilt-wrapper img { width: 160px; height: 160px; }
 
   .name { font-size: 32px; }
   .name-cn { font-size: 22px; }
@@ -649,9 +559,7 @@ footer p { margin: 0; }
 
   .blob1, .blob2, .blob3 { opacity: 0.45; }
 
-  .nav { justify-content: center; margin-bottom: 12px; }
-
-  .page-header .social { flex-wrap: wrap; }
+  .header .social { flex-wrap: wrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {
