@@ -239,8 +239,7 @@ strong { font-weight: 600; }
 
 .profile-tilt-wrapper img {
   width: 200px;
-  height: 200px;
-  object-fit: cover;
+  height: auto;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
   transition: transform var(--duration-normal) var(--ease-out),
@@ -543,7 +542,7 @@ footer p { margin: 0; }
     width: 160px;
   }
 
-  .profile-tilt-wrapper img { width: 160px; height: 160px; }
+  .profile-tilt-wrapper img { width: 160px; height: auto; }
 
   .name { font-size: 32px; }
   .name-cn { font-size: 22px; }
