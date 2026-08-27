@@ -1,0 +1,252 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>CV — Qihan Shan</title>
+    <meta name="author" content="Qihan Shan">
+    <meta name="description" content="Curriculum vitae of Qihan Shan (单琪涵) — robotics graduate student at the University of Pennsylvania.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+  </head>
+
+  <body>
+    <div class="progress-bar"></div>
+    <div class="blob1" aria-hidden="true"></div>
+    <div class="blob2" aria-hidden="true"></div>
+    <div class="blob3" aria-hidden="true"></div>
+    <button class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <div class="container">
+      <!-- Nav -->
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="cv.html" class="active">CV</a>
+      </nav>
+
+      <!-- Page header -->
+      <header class="page-header">
+        <h1 class="name">Curriculum Vitae</h1>
+        <p class="intro">Qihan Shan (单琪涵) — humanoid locomotion and navigation. Philadelphia, PA.</p>
+        <p class="social">
+          <a href="mailto:shan6@engineering.upenn.edu" title="Email"><i class="fas fa-envelope"></i></a>
+          <a href="https://github.com/Egg0523" target="_blank" rel="noopener" title="GitHub"><i class="fab fa-github"></i></a>
+          <a class="pdf-button" href="files/cv.pdf">
+            <i class="fas fa-download"></i> Download PDF
+          </a>
+        </p>
+      </header>
+
+      <!-- Education -->
+      <section class="section scroll-animate">
+        <h2>Education</h2>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <strong>University of Pennsylvania</strong>
+                <span class="period">05/2025 – 05/2027 (Expected)</span>
+              </div>
+              <div class="timeline-detail">
+                M.S. in Mechanical Engineering and Applied Mechanics (Mechatronics &amp; Robotic Systems) | Philadelphia, PA
+              </div>
+              <div class="timeline-detail">
+                Coursework: Robot Motion Control, Path Planning, Kinematics,
+                Machine / Deep / Reinforcement Learning
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <strong>Zhejiang University (ZJUI)</strong>
+                <span class="period">09/2021 – 06/2025</span>
+              </div>
+              <div class="timeline-detail">
+                B.S. in Mechanical Engineering | GPA: 3.87/4.00 | Hangzhou, China
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <strong>University of Illinois Urbana-Champaign</strong>
+                <span class="period">09/2021 – 06/2025</span>
+              </div>
+              <div class="timeline-detail">
+                B.S. in Mechanical Engineering (joint ZJU-UIUC Institute program) | Urbana-Champaign, IL
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Experience -->
+      <section class="section scroll-animate">
+        <h2>Experience</h2>
+        <div class="entry">
+          <div class="entry-header">
+            <strong>AgiBot (Zhiyuan Robotics) — Motion Control Algorithm Intern</strong>
+            <span class="period">06/2026 – Present</span>
+          </div>
+          <div class="entry-detail">X-Lab | Motion Intelligence Group | Shenzhen, China</div>
+
+          <div class="subentry">
+            <div class="subentry-title">Dynamic Navigation and Perceptive Obstacle Avoidance for a Humanoid Robot</div>
+          <ul>
+            <li>
+              Migrated an FDM (Forward Dynamics Model) navigation framework to the AgiBot X2 humanoid,
+              adapting the full perception–planning–control pipeline for real-robot deployment.
+            </li>
+            <li>
+              Trained navigation policies in simulation with FDM and MPPI modules, traversing doors,
+              stairs, pillar obstacles, and corridors.
+            </li>
+            <li>
+              Achieved sim-to-real deployment with precise 2D navigation on hardware to goals within 4 m
+              at under 0.3 m position error; detected obstacles at 10 Hz and replanned paths in real time
+              for high-frequency dynamic avoidance.
+            </li>
+            <li>
+              Training an elevation-map-based perceptive locomotion policy for complex 3D stair terrain,
+              resolving position drift during continuous stair ascent and gait instability during descent.
+            </li>
+          </ul>
+          </div>
+
+          <div class="subentry">
+            <div class="subentry-title">VLN-Based Long-Horizon Autonomous Navigation</div>
+          <ul>
+            <li>
+              Designed a hierarchical “VLM planner + FDM action expert” architecture, integrating
+              Qwen-3-VL zero-shot upstream of FDM for semantic goal understanding and autonomous planning.
+            </li>
+            <li>
+              Grounded language or image goals into RGB-space waypoints and projected them into the robot
+              body frame as FDM inputs, enabling long-horizon semantic navigation (in progress).
+            </li>
+          </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Projects -->
+      <section class="section scroll-animate">
+        <h2>Projects</h2>
+
+        <div class="entry">
+          <div class="entry-header">
+            <strong>UAV 3D Path Planning and Real-Flight Deployment</strong>
+            <span class="period">02/2026 – 05/2026</span>
+          </div>
+          <div class="entry-detail">University of Pennsylvania | Advisor: Prof. M. Ani Hsieh</div>
+          <ul>
+            <li>
+              Designed an SE(3) rigid-body pose controller with a low-level PD attitude loop for unified
+              position–attitude closed-loop control.
+            </li>
+            <li>
+              Combined A* global path planning with piecewise quintic-polynomial trajectory fitting to
+              generate smooth, collision-free, dynamically feasible trajectories.
+            </li>
+            <li>
+              Integrated the planning-to-control stack on hardware; achieved autonomous flight through a
+              real 3D maze with landing error under 10%.
+            </li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-header">
+            <strong>Semi-Autonomous Combat Robot and Control System</strong>
+            <span class="period">09/2025 – 12/2025</span>
+          </div>
+          <div class="entry-detail">University of Pennsylvania | Advisor: Prof. Mark Yim</div>
+          <ul>
+            <li>
+              Built an ESP32-S3 embedded control system with low-level hardware drivers and a low-latency
+              Wi-Fi web interface for remote operation.
+            </li>
+            <li>
+              Fed TOF range sensing over I2C into a PID closed loop for wall-following and obstacle
+              avoidance; drove dual motors differentially via PWM and L298N drivers for autonomous navigation.
+            </li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-header">
+            <strong>Vision-Driven Tendon-Actuated Dexterous Hand</strong>
+            <span class="period">01/2025 – 06/2025</span>
+          </div>
+          <div class="entry-detail">ZJU-UIUC Physical Intelligence Lab | Advisor: Prof. Hua Chen</div>
+          <ul>
+            <li>
+              Designed a tendon-driven hand actuated by five independent servos; extracted real-time 3D
+              hand keypoints with MediaPipe and mapped finger-flexion features to servo commands,
+              validating teleoperated grasping of everyday objects.
+            </li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-header">
+            <strong>Loco-Manipulation of a Quadruped with a Mounted Arm</strong>
+            <span class="period">09/2024 – 01/2025</span>
+          </div>
+          <div class="entry-detail">ZJU-UIUC Physical Intelligence Lab | Project Lead | Advisor: Prof. Hua Chen</div>
+          <ul>
+            <li>
+              Led whole-body control modeling for dynamic mobile grasping on a Unitree GO2 quadruped with
+              an arm, jointly handling body posture, foot contacts, end-effector pose, and stability constraints.
+            </li>
+            <li>
+              Trained PPO policies in massively parallel simulation; designed rewards spanning locomotion
+              stability, manipulation, and coordination, validating policy transfer in simulation.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Competition -->
+      <section class="section scroll-animate">
+        <h2>Competition</h2>
+        <div class="entry">
+          <div class="entry-header">
+            <strong>ZJUI Meta RoboMaster Team — Mechanical Design, Core Member</strong>
+            <span class="period">09/2021 – 06/2025</span>
+          </div>
+          <ul>
+            <li>
+              Optimized the feeder mechanism and friction-wheel structure, improving shooting stability by 20%;
+              redesigned the magazine layout, increasing capacity by 25%.
+            </li>
+            <li>Second Prize, 2023 national RoboMaster 3V3 competition.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section class="section scroll-animate">
+        <h2>Skills</h2>
+        <ul class="compact-list">
+          <li><strong>Programming</strong> — Python, C, C++, MATLAB</li>
+          <li><strong>Tools &amp; Frameworks</strong> — PyTorch, Isaac Sim, Isaac Lab, MuJoCo, ROS2, Linux (Ubuntu), Git, SolidWorks, KiCad</li>
+          <li><strong>Languages</strong> — Mandarin (native), English (professional working proficiency)</li>
+        </ul>
+      </section>
+
+      <footer>
+        <p>Last updated: August 2026</p>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
