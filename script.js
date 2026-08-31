@@ -52,3 +52,22 @@ if (tiltImg && tiltWrap && window.matchMedia('(hover: hover)').matches) {
     tiltImg.style.transform = '';
   });
 }
+
+// Project videos: ship a poster, fetch the video only when someone asks for it
+const projectVideos = document.querySelectorAll('.project-media video');
+if (projectVideos.length) {
+  const canHover = window.matchMedia('(hover: hover)').matches;
+  projectVideos.forEach(video => {
+    const start = () => {
+      if (video.preload === 'none') video.preload = 'auto';
+      const played = video.play();
+      if (played) played.catch(() => {});
+    };
+    const stop = () => video.pause();
+    if (canHover) {
+      video.addEventListener('mouseenter', start);
+      video.addEventListener('mouseleave', stop);
+    }
+    video.addEventListener('click', () => (video.paused ? start() : stop()));
+  });
+}
