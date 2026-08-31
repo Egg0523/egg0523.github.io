@@ -118,7 +118,7 @@
           </div>
           <div class="subentry">
             <div class="subentry-title">Local execution — on-robot navigation and dynamic obstacle avoidance</div>
-            <div class="entry-detail">Deployed on the real X2 · 4 m goals within 0.3 m · 80% avoidance of a 1 m/s moving obstacle</div>
+            <div class="entry-detail">Deployed on the real X2 · 10 m goals within 0.3 m · 100% avoidance of a 1 m/s obstacle in simulation, 80% on hardware</div>
           </div>
           <div class="subentry">
             <div class="subentry-title">Perceptive locomotion — traversing complex 3-D terrain</div>
@@ -156,8 +156,8 @@
             <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> Simulation and hardware</div>
             <ul>
               <li>Migrated a learned perceptive Forward Dynamics Model to the X2 humanoid: proprioceptive history plus an elevation map predict 5 s of future SE(2) poses and failure risk, feeding an MPPI sampling planner that emits velocity commands directly — removing hand-tuned cost maps entirely.</li>
-              <li>Deployed the full perception–planning–control pipeline on hardware. The robot traverses doorways, ascending and descending stairs, pillar fields, and corridors, reaching 4 m goals within 0.3 m of position error.</li>
-              <li>Built a 10 Hz perception–replanning loop for <strong>moving obstacles</strong>: 80% avoidance against a 1 m/s obstacle, with the other 20% stopping to wait rather than colliding — no collisions across the runs.</li>
+              <li>Deployed the full perception–planning–control pipeline on hardware. The robot clears doorways, pillar fields and corridors on flat ground, reaching goals up to 10 m away within 0.3 m of position error.</li>
+              <li>Built a 10 Hz perception–replanning loop for <strong>moving obstacles</strong>: 100% avoidance in simulation against a 1 m/s obstacle within 4 m, and 80% on hardware, where sensing-to-actuation latency costs the difference. The other 20% holds position rather than colliding — no collisions in either setting.</li>
               <li>Fed the semantic layer's image-space goals into this planner as body-frame waypoints, closing the path from a language instruction to motion on the real robot.</li>
             </ul>
             <div class="project-links">

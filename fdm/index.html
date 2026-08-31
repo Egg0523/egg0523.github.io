@@ -73,14 +73,14 @@
 
         <!-- 更多视频就位后，按同样结构往下加：
         <div class="project-media" style="margin-top:26px">
-          <video src="../images/fdm-stairs.mp4" poster="../images/poster-fdm-stairs.jpg" loop muted playsinline preload="none"></video>
+          <video src="../images/fdm-2.mp4" poster="../images/poster-fdm-2.jpg" loop muted playsinline preload="none"></video>
         </div>
         <div class="project-meta" style="margin-top:10px">说明这段拍的是什么。</div>
         -->
 
         <p style="margin-top:22px">
-          On hardware the robot traverses doorways, ascending and descending stairs, pillar fields and
-          corridors, and reaches 4&nbsp;m goals within 0.3&nbsp;m of position error.
+          On hardware the robot clears doorways, pillar fields and corridors on flat ground, and reaches
+          goals up to 10&nbsp;m away within 0.3&nbsp;m of position error.
         </p>
       </section>
 
@@ -92,12 +92,18 @@
           person walking across the corridor does not do.
         </p>
         <p>
-          Against a 1&nbsp;m/s moving obstacle, a 10&nbsp;Hz perception&ndash;replanning loop clears it
-          <strong>80%</strong> of the time. The other 20% is not a collision: the robot stops and waits for
-          the obstacle to pass. Across the runs there were no collisions at all.
+          In simulation, a 10&nbsp;Hz perception&ndash;replanning loop clears a 1&nbsp;m/s obstacle inside
+          4&nbsp;m <strong>every time</strong>. On the real robot the same planner clears it
+          <strong>80%</strong> of the time. The gap is latency: between the depth frame arriving and the
+          motors acting on the replanned command, the obstacle has already moved, and the plan the robot
+          executes is a plan for a world a moment out of date.
         </p>
         <p>
-          That failure mode is a consequence of the cost design rather than a bug. Risk is accumulated
+          The other 20% is not a collision. The robot stops and waits for the obstacle to pass. Across both
+          settings there were no collisions at all.
+        </p>
+        <p>
+          That waiting behaviour is a consequence of the cost design rather than a bug. Risk is accumulated
           across neighbouring sampled paths on purpose, so that a single missed collision prediction cannot
           slip through. When something crosses the corridor the whole sampled fan goes high-risk at once,
           no candidate clears the threshold, and the planner settles on near-zero velocity until the way is
