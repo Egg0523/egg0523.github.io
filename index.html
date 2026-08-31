@@ -66,6 +66,66 @@
         </p>
       </header>
 
+      <!-- Education -->
+      <section class="section scroll-animate">
+        <h2>Education</h2>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <strong>University of Pennsylvania</strong>
+                <span class="period">05/2025 – 05/2027 (Expected)</span>
+              </div>
+              <div class="timeline-detail">
+                M.S. in Mechanical Engineering and Applied Mechanics (Mechatronics &amp; Robotic Systems) | Philadelphia, PA
+              </div>
+              <div class="timeline-detail">
+                Coursework: Robot Motion Control, Path Planning, Kinematics,
+                Machine / Deep / Reinforcement Learning
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <strong>Zhejiang University (ZJUI) &amp; University of Illinois Urbana-Champaign</strong>
+                <span class="period">09/2021 – 06/2025</span>
+              </div>
+              <div class="timeline-detail">
+                B.S. in Mechanical Engineering, minor in Electrical Engineering | GPA: 3.87/4.00 | Hangzhou, China &amp; Urbana-Champaign, IL
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Experience -->
+      <section class="section scroll-animate">
+        <h2>Experience</h2>
+        <div class="entry">
+          <div class="entry-header">
+            <strong>AgiBot (智元机器人) — Motion Control Algorithm Intern</strong>
+            <span class="period">06/2026 – Present</span>
+          </div>
+          <div class="entry-detail">X-Lab | Motion Intelligence Group | Shenzhen, China</div>
+          <ul>
+            <li>Reproducing and re-targeting three published methods to build a layered navigation stack on the X2 humanoid, from language grounding down to joint targets.</li>
+          </ul>
+          <div class="subentry">
+            <div class="subentry-title">Semantic planning — DualVLN reproduction with self-collected data</div>
+            <div class="entry-detail">Simulation · VLN-CE RxR val-unseen SR 59.3 / SPL 51.6</div>
+          </div>
+          <div class="subentry">
+            <div class="subentry-title">Local execution — perceptive FDM navigation and dynamic obstacle avoidance</div>
+            <div class="entry-detail">Deployed on the real X2 · 4 m goals within 0.3 m · 80% avoidance of a 1 m/s moving obstacle</div>
+          </div>
+          <div class="subentry">
+            <div class="subentry-title">Perceptive locomotion — AME-2 reproduction and humanoid transfer</div>
+            <div class="entry-detail">Isaac Lab · 90% teacher / 75% student success on unseen terrain</div>
+          </div>
+        </div>
+      </section>
       <!-- Projects -->
       <section class="section scroll-animate">
         <h2>Projects</h2>
@@ -100,6 +160,9 @@
               <li>Extended the method to <strong>moving obstacles</strong>, a case the original paper explicitly lists as untested: 80% avoidance success against a 1 m/s moving obstacle under a 10 Hz perception–replanning loop, with the remaining 20% stopping and waiting rather than colliding — no collisions across the runs.</li>
               <li>Substituted FDM for System 1 as the action expert, projecting System 2's pixel goals into body-frame waypoints — the path that carries language-driven navigation onto the real robot.</li>
             </ul>
+            <div class="project-links">
+              <a class="project-link" href="fdm/">Project page <i class="fas fa-arrow-right"></i></a>
+            </div>
           </div>
         </article>
 
@@ -115,6 +178,9 @@
               <li>Transferred from the paper's quadruped and point-foot biped platforms to the armed X2 humanoid, which carries a higher center of mass and a smaller support polygon: <strong>90% teacher / 75% student</strong> success on unseen terrain, against 95.2% / 82.4% for the paper's quadruped — a distillation gap in line with the original.</li>
               <li>Diagnosed and fixed foothold drift during consecutive stair ascents, traced to odometry–elevation-map misalignment, along with gait instability on descent.</li>
             </ul>
+            <div class="project-links">
+              <a class="project-link" href="ame-2/">Project page <i class="fas fa-arrow-right"></i></a>
+            </div>
           </div>
         </article>
 
@@ -177,69 +243,6 @@
           </div>
         </article>
       </section>
-
-      <!-- Experience -->
-      <section class="section scroll-animate">
-        <h2>Experience</h2>
-        <div class="entry">
-          <div class="entry-header">
-            <strong>AgiBot (智元机器人) — Motion Control Algorithm Intern</strong>
-            <span class="period">06/2026 – Present</span>
-          </div>
-          <div class="entry-detail">X-Lab | Motion Intelligence Group | Shenzhen, China</div>
-          <ul>
-            <li>Reproducing and re-targeting three published methods to build a layered navigation stack on the X2 humanoid, from language grounding down to joint targets.</li>
-          </ul>
-          <div class="subentry">
-            <div class="subentry-title">Semantic planning — DualVLN reproduction with self-collected data</div>
-            <div class="entry-detail">Simulation · VLN-CE RxR val-unseen SR 59.3 / SPL 51.6</div>
-          </div>
-          <div class="subentry">
-            <div class="subentry-title">Local execution — perceptive FDM navigation and dynamic obstacle avoidance</div>
-            <div class="entry-detail">Deployed on the real X2 · 4 m goals within 0.3 m · 80% avoidance of a 1 m/s moving obstacle</div>
-          </div>
-          <div class="subentry">
-            <div class="subentry-title">Perceptive locomotion — AME-2 reproduction and humanoid transfer</div>
-            <div class="entry-detail">Isaac Lab · 90% teacher / 75% student success on unseen terrain</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Education -->
-      <section class="section scroll-animate">
-        <h2>Education</h2>
-        <div class="timeline">
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-header">
-                <strong>University of Pennsylvania</strong>
-                <span class="period">05/2025 – 05/2027 (Expected)</span>
-              </div>
-              <div class="timeline-detail">
-                M.S. in Mechanical Engineering and Applied Mechanics (Mechatronics &amp; Robotic Systems) | Philadelphia, PA
-              </div>
-              <div class="timeline-detail">
-                Coursework: Robot Motion Control, Path Planning, Kinematics,
-                Machine / Deep / Reinforcement Learning
-              </div>
-            </div>
-          </div>
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <div class="timeline-header">
-                <strong>Zhejiang University (ZJUI) &amp; University of Illinois Urbana-Champaign</strong>
-                <span class="period">09/2021 – 06/2025</span>
-              </div>
-              <div class="timeline-detail">
-                B.S. in Mechanical Engineering, minor in Electrical Engineering | GPA: 3.87/4.00 | Hangzhou, China &amp; Urbana-Champaign, IL
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- Competition -->
       <section class="section scroll-animate">
         <h2>Competition</h2>
@@ -257,7 +260,6 @@
           </ul>
         </div>
       </section>
-
       <!-- Skills -->
       <section class="section scroll-animate">
         <h2>Skills</h2>
@@ -269,7 +271,6 @@
           <li><strong>Languages</strong> — Mandarin (native), English (professional working proficiency; TOEFL 103)</li>
         </ul>
       </section>
-
       <!-- Contact -->
       <section class="section scroll-animate">
         <h2>Contact</h2>
