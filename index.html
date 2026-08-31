@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Qihan Shan</title>
     <meta name="author" content="Qihan Shan">
-    <meta name="description" content="Qihan Shan (单琪涵) — M.S. student in Mechatronics &amp; Robotic Systems at the University of Pennsylvania. Humanoid locomotion, navigation, reinforcement learning, sim-to-real.">
+    <meta name="description" content="Qihan Shan (单琪涵) — M.S. student in Mechatronics &amp; Robotic Systems at the University of Pennsylvania. Humanoid locomotion, vision-and-language navigation, reinforcement learning, sim-to-real.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -36,10 +36,13 @@
           I am a master's student in Mechanical Engineering and Applied Mechanics
           (Mechatronics &amp; Robotic Systems) at the
           <a href="https://www.me.upenn.edu/" target="_blank" rel="noopener">University of Pennsylvania</a>,
-          where I work on <strong>humanoid locomotion and VLN</strong>.
+          where I work on <strong>humanoid locomotion and vision-and-language navigation</strong>.
           I am currently a Motion Control Algorithm Intern with the Motion Intelligence Group at
           <a href="https://www.zhiyuan-robot.com/" target="_blank" rel="noopener">AgiBot</a>
-          in Shenzhen.
+          in Shenzhen, building a <strong>layered navigation stack for the X2 humanoid</strong>:
+          a VLM planner that grounds language into pixel goals, a learned forward-dynamics
+          local planner that turns those goals into safe velocity commands, and an
+          attention-based perceptive locomotion policy underneath.
           <br>Before Penn, I received my B.S. in Mechanical Engineering from
           Zhejiang University (ZJUI) and the University of Illinois Urbana-Champaign,
           where I joined the
@@ -51,10 +54,12 @@
           My research interests include
           <span class="tag">Humanoid Locomotion</span>
           <span class="tag">Vision-Language Navigation</span>
-          <span class="nowrap"><span class="tag">Reinforcement Learning</span>.</span>
+          <span class="tag">Reinforcement Learning</span>
+          <span class="nowrap"><span class="tag">Sim-to-Real</span>.</span>
         </p>
         <p class="cv-line">
-          You can find my full <a href="files/cv.pdf">CV here</a>.
+          You can find my <a href="files/cv.pdf">CV here</a>
+          (<a href="files/cv-cn.pdf">中文简历</a>).
         </p>
         <p class="social">
           <a href="mailto:shan6@engineering.upenn.edu" title="Email"><i class="fas fa-envelope"></i></a>
@@ -65,43 +70,62 @@
       <!-- Projects -->
       <section class="section scroll-animate">
         <h2>Projects</h2>
+
         <article class="project">
           <div class="project-media">
-            <!-- 换成 <img src="images/proj-humanoid-nav.gif" alt="Dynamic Navigation and Perceptive Obstacle Avoidance for a Humanoid"> 或
-                 <video src="images/proj-humanoid-nav.mp4" autoplay loop muted playsinline></video> -->
+            <!-- 视频就位后替换成：
+                 <video src="images/proj-dualvln.mp4" autoplay loop muted playsinline></video> -->
             <div class="media-placeholder"><i class="fas fa-video"></i></div>
           </div>
           <div class="project-body">
-            <h3>Dynamic Navigation and Perceptive Obstacle Avoidance for a Humanoid</h3>
-            <div class="project-meta">AgiBot X-Lab · Motion Intelligence Group <span class="dot">·</span> 2026</div>
+            <h3>Dual-System Vision-and-Language Navigation for a Humanoid</h3>
+            <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> DualVLN reproduction, self-collected data <span class="dot">·</span> Simulation</div>
             <ul>
-              <li>Migrated a Forward Dynamics Model (FDM) navigation framework to the AgiBot X2 humanoid, adapting the full perception–planning–control pipeline for real-robot deployment.</li>
-              <li>Trained navigation policies in simulation with FDM and MPPI modules, traversing doors, stairs, pillar obstacles, and corridors.</li>
-              <li>Reached goals within 4 m at under 0.3 m position error on hardware; detected obstacles at 10 Hz and replanned in real time.</li>
-              <li>Training an elevation-map-based perceptive locomotion policy for complex 3D stair terrain.</li>
+              <li>Built a VLN data pipeline from scratch: collected 4,229 R2R/RxR trajectories across 60 Matterport3D scenes, projected 3-D trajectories onto 2-D egocentric views with depth-based visibility filtering to discard occluded points, and segmented them into 251,916 training samples spanning pixel-goal grounding, self-directed view adjustment, and STOP supervision.</li>
+              <li>LoRA-finetuned System 2 (Qwen-VL-2.5-7B, where the paper fully finetunes) and trained the matching flow-matching diffusion-transformer System 1, conditioned jointly on latent goal queries and high-frequency RGB, emitting 32 dense waypoints.</li>
+              <li>VLN-CE RxR val-unseen: <strong>SR 59.3 / SPL 51.6</strong>, level with the 59.6 / 51.8 obtained by re-running the official weights in the same evaluation setup — at substantially lower training data and GPU memory cost.</li>
             </ul>
           </div>
         </article>
 
         <article class="project">
           <div class="project-media">
-            <!-- 换成 <img src="images/proj-vln.gif" alt="VLN-Based Long-Horizon Autonomous Navigation"> 或
-                 <video src="images/proj-vln.mp4" autoplay loop muted playsinline></video> -->
+            <!-- 视频就位后替换成：
+                 <video src="images/proj-fdm.mp4" autoplay loop muted playsinline></video> -->
             <div class="media-placeholder"><i class="fas fa-video"></i></div>
           </div>
           <div class="project-body">
-            <h3>VLN-Based Long-Horizon Autonomous Navigation</h3>
-            <div class="project-meta">AgiBot X-Lab · Motion Intelligence Group <span class="dot">·</span> 2026 – Present</div>
+            <h3>Perceptive Forward-Dynamics Navigation on the X2 Humanoid</h3>
+            <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> FDM (RSS 2025) migration and extension <span class="dot">·</span> Deployed on hardware</div>
             <ul>
-              <li>Designed a hierarchical “VLM planner + FDM action expert” architecture, integrating Qwen-3-VL zero-shot for semantic goal understanding.</li>
-              <li>Grounds language or image goals into RGB-space waypoints, projected into the robot body frame as FDM inputs for long-horizon semantic navigation.</li>
+              <li>Migrated a learned perceptive Forward Dynamics Model to the X2 humanoid: proprioceptive history plus an elevation map predict 5 s of future SE(2) poses and failure risk, feeding an MPPI sampling planner that emits velocity commands directly — removing hand-tuned cost maps entirely.</li>
+              <li>Deployed the full perception–planning–control pipeline on hardware. The robot traverses doorways, ascending and descending stairs, pillar fields, and corridors, reaching 4 m goals within 0.3 m of position error.</li>
+              <li>Extended the method to <strong>moving obstacles</strong>, a case the original paper explicitly lists as untested: 80% avoidance success against a 1 m/s moving obstacle under a 10 Hz perception–replanning loop, with the remaining 20% stopping and waiting rather than colliding — no collisions across the runs.</li>
+              <li>Substituted FDM for System 1 as the action expert, projecting System 2's pixel goals into body-frame waypoints — the path that carries language-driven navigation onto the real robot.</li>
             </ul>
           </div>
         </article>
 
         <article class="project">
           <div class="project-media">
-            <!-- 换成 <img src="images/proj-uav.gif" alt="UAV 3D Path Planning and Real-Flight Deployment"> 或
+            <!-- 视频就位后替换成：
+                 <video src="images/proj-ame2.mp4" autoplay loop muted playsinline></video> -->
+            <div class="media-placeholder"><i class="fas fa-video"></i></div>
+          </div>
+          <div class="project-body">
+            <h3>Attention-Based Perceptive Locomotion for a Humanoid</h3>
+            <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> AME-2 reproduction, Isaac Lab <span class="dot">·</span> Simulation</div>
+            <ul>
+              <li>Reproduced attention-based map encoding — local CNN features weighted by multi-head attention against a query built from global pooled features and proprioception, concentrating the policy on critical foothold regions — together with uncertainty-aware neural elevation mapping and teacher–student distillation (PPO, action distillation, and representation alignment).</li>
+              <li>Transferred from the paper's quadruped and point-foot biped platforms to the armed X2 humanoid, which carries a higher center of mass and a smaller support polygon: <strong>90% teacher / 75% student</strong> success on unseen terrain, against 95.2% / 82.4% for the paper's quadruped — a distillation gap in line with the original.</li>
+              <li>Diagnosed and fixed foothold drift during consecutive stair ascents, traced to odometry–elevation-map misalignment, along with gait instability on descent.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="project">
+          <div class="project-media">
+            <!-- 视频就位后替换成：
                  <video src="images/proj-uav.mp4" autoplay loop muted playsinline></video> -->
             <div class="media-placeholder"><i class="fas fa-video"></i></div>
           </div>
@@ -110,31 +134,31 @@
             <div class="project-meta">University of Pennsylvania · Advisor: Prof. M. Ani Hsieh <span class="dot">·</span> 02/2026 – 05/2026</div>
             <ul>
               <li>Designed an SE(3) rigid-body pose controller with a low-level PD attitude loop for unified position–attitude control.</li>
-              <li>Combined A* global planning with piecewise quintic-polynomial trajectory fitting for smooth, collision-free trajectories.</li>
-              <li>Flew autonomously through a real 3D maze with landing error under 10%.</li>
+              <li>Combined A* global planning with piecewise quintic-polynomial trajectory fitting to generate smooth, collision-free trajectories that respect dynamic constraints.</li>
+              <li>Integrated the full planning-to-control stack on hardware and flew autonomously through a real 3-D maze to a commanded landing point.</li>
             </ul>
           </div>
         </article>
 
         <article class="project">
           <div class="project-media">
-            <!-- 换成 <img src="images/proj-combat-robot.gif" alt="Semi-Autonomous Combat Robot and Control System"> 或
-                 <video src="images/proj-combat-robot.mp4" autoplay loop muted playsinline></video> -->
+            <!-- 视频就位后替换成：
+                 <video src="images/proj-locomanip.mp4" autoplay loop muted playsinline></video> -->
             <div class="media-placeholder"><i class="fas fa-video"></i></div>
           </div>
           <div class="project-body">
-            <h3>Semi-Autonomous Combat Robot and Control System</h3>
-            <div class="project-meta">University of Pennsylvania · Advisor: Prof. Mark Yim <span class="dot">·</span> 09/2025 – 12/2025</div>
+            <h3>Loco-Manipulation of a Quadruped with a Mounted Arm</h3>
+            <div class="project-meta">ZJU-UIUC Physical Intelligence Lab · Project Lead · Advisor: Prof. Hua Chen <span class="dot">·</span> 09/2024 – 01/2025</div>
             <ul>
-              <li>Built an ESP32-S3 embedded control system with low-level drivers and a low-latency Wi-Fi web interface for teleoperation.</li>
-              <li>Fed TOF range sensing over I2C into a PID loop for wall-following and obstacle avoidance, with differential PWM motor drive.</li>
+              <li>Led whole-body control modeling for dynamic mobile grasping on a Unitree GO2 with a mounted arm, jointly handling body posture, foot contacts, end-effector pose, and stability constraints in a single policy.</li>
+              <li>Trained PPO policies in massively parallel simulation with rewards spanning locomotion stability, manipulation, and coordination between the two.</li>
             </ul>
           </div>
         </article>
 
         <article class="project">
           <div class="project-media">
-            <!-- 换成 <img src="images/proj-dexterous-hand.gif" alt="Vision-Driven Tendon-Actuated Dexterous Hand"> 或
+            <!-- 视频就位后替换成：
                  <video src="images/proj-dexterous-hand.mp4" autoplay loop muted playsinline></video> -->
             <div class="media-placeholder"><i class="fas fa-video"></i></div>
           </div>
@@ -143,23 +167,23 @@
             <div class="project-meta">ZJU-UIUC Physical Intelligence Lab · Advisor: Prof. Hua Chen <span class="dot">·</span> 01/2025 – 06/2025</div>
             <ul>
               <li>Designed a tendon-driven hand actuated by five independent servos.</li>
-              <li>Extracted real-time 3D hand keypoints with MediaPipe and mapped finger-flexion features to servo commands for teleoperated grasping.</li>
+              <li>Extracted real-time 3-D hand keypoints with MediaPipe and mapped finger-flexion features to servo commands for teleoperated grasping of everyday objects.</li>
             </ul>
           </div>
         </article>
 
         <article class="project">
           <div class="project-media">
-            <!-- 换成 <img src="images/proj-locomanip.gif" alt="Loco-Manipulation of a Quadruped with a Mounted Arm"> 或
-                 <video src="images/proj-locomanip.mp4" autoplay loop muted playsinline></video> -->
+            <!-- 视频就位后替换成：
+                 <video src="images/proj-combat-robot.mp4" autoplay loop muted playsinline></video> -->
             <div class="media-placeholder"><i class="fas fa-video"></i></div>
           </div>
           <div class="project-body">
-            <h3>Loco-Manipulation of a Quadruped with a Mounted Arm</h3>
-            <div class="project-meta">ZJU-UIUC Physical Intelligence Lab · Project Lead · Advisor: Prof. Hua Chen <span class="dot">·</span> 09/2024 – 01/2025</div>
+            <h3>Semi-Autonomous Combat Robot and Control System</h3>
+            <div class="project-meta">University of Pennsylvania · Advisor: Prof. Mark Yim <span class="dot">·</span> 09/2025 – 12/2025</div>
             <ul>
-              <li>Led whole-body control modeling for dynamic mobile grasping on a Unitree GO2 with an arm, jointly handling body posture, foot contacts, end-effector pose, and stability.</li>
-              <li>Trained PPO policies in massively parallel simulation with rewards spanning locomotion stability, manipulation, and coordination.</li>
+              <li>Built an ESP32-S3 embedded control system with low-level drivers and a low-latency Wi-Fi web interface for teleoperation.</li>
+              <li>Fed TOF range sensing over I2C into a PID loop for wall-following and local obstacle avoidance, with differential PWM motor drive.</li>
             </ul>
           </div>
         </article>
@@ -175,8 +199,20 @@
           </div>
           <div class="entry-detail">X-Lab | Motion Intelligence Group | Shenzhen, China</div>
           <ul>
-            <li>Humanoid locomotion and navigation — see the first two projects above.</li>
+            <li>Reproducing and re-targeting three published methods to build a layered navigation stack on the X2 humanoid, from language grounding down to joint targets.</li>
           </ul>
+          <div class="subentry">
+            <div class="subentry-title">Semantic planning — DualVLN reproduction with self-collected data</div>
+            <div class="entry-detail">Simulation · VLN-CE RxR val-unseen SR 59.3 / SPL 51.6</div>
+          </div>
+          <div class="subentry">
+            <div class="subentry-title">Local execution — perceptive FDM navigation and dynamic obstacle avoidance</div>
+            <div class="entry-detail">Deployed on the real X2 · 4 m goals within 0.3 m · 80% avoidance of a 1 m/s moving obstacle</div>
+          </div>
+          <div class="subentry">
+            <div class="subentry-title">Perceptive locomotion — AME-2 reproduction and humanoid transfer</div>
+            <div class="entry-detail">Isaac Lab · 90% teacher / 75% student success on unseen terrain</div>
+          </div>
         </div>
       </section>
 
@@ -238,8 +274,10 @@
         <h2>Skills</h2>
         <ul class="compact-list">
           <li><strong>Programming</strong> — Python, C, C++, MATLAB</li>
-          <li><strong>Tools &amp; Frameworks</strong> — PyTorch, Isaac Sim, Isaac Lab, MuJoCo, ROS2, Linux (Ubuntu), Git, SolidWorks, KiCad</li>
-          <li><strong>Languages</strong> — Mandarin (native), English (professional working proficiency)</li>
+          <li><strong>Learning &amp; Simulation</strong> — PyTorch, Isaac Lab / Isaac Sim, Habitat, MuJoCo; PPO, LoRA/PEFT, teacher–student distillation, diffusion policy and flow matching</li>
+          <li><strong>Algorithms &amp; Deployment</strong> — MPPI sampling-based planning, learned forward dynamics models, elevation mapping and point-cloud processing, VLN data pipelines, sim-to-real onboard deployment</li>
+          <li><strong>Tools</strong> — ROS2, Linux (Ubuntu), Git, SolidWorks, KiCad</li>
+          <li><strong>Languages</strong> — Mandarin (native), English (professional working proficiency; TOEFL 103)</li>
         </ul>
       </section>
 
