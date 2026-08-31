@@ -141,8 +141,8 @@
             <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> Simulation</div>
             <ul>
               <li>Built a VLN data pipeline from scratch: collected 4,229 R2R/RxR trajectories across 60 Matterport3D scenes, projected 3-D trajectories onto 2-D egocentric views with depth-based visibility filtering to discard occluded points, and segmented them into 251,916 training samples spanning pixel-goal grounding, self-directed view adjustment, and STOP supervision.</li>
-              <li>LoRA-finetuned a 7B vision-language model to emit each goal as an image-space coordinate, and trained a flow-matching trajectory network that turns that goal into 32 dense waypoints. The two run asynchronously, so slow reasoning never blocks the control loop.</li>
-              <li>VLN-CE RxR val-unseen: <strong>SR 59.3 / SPL 51.6</strong>, level with the 59.6 / 51.8 obtained by re-running the official weights in the same evaluation setup — at substantially lower training data and GPU memory cost.</li>
+              <li>LoRA-finetuned a 7B vision-language model to emit the farthest reachable waypoint currently in view as a pixel coordinate — and, when that point falls outside the frame, to turn or look down on its own until it is visible. Freezing the model, learnable latent queries pull its hidden state out as the condition for a flow-matching network that generates 32 dense waypoints. The two run at 2 Hz and 30 Hz, so slow reasoning never blocks the control loop.</li>
+              <li>VLN-CE RxR val-unseen: <strong>SR 59.3 / SPL 51.6</strong>.</li>
             </ul>
           </div>
         </article>
@@ -155,9 +155,9 @@
             <h3>Perceptive Forward-Dynamics Navigation on the X2 Humanoid</h3>
             <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> Simulation and hardware</div>
             <ul>
-              <li>Migrated a learned perceptive Forward Dynamics Model to the X2 humanoid: proprioceptive history plus an elevation map predict 5 s of future SE(2) poses and failure risk, feeding an MPPI sampling planner that emits velocity commands directly — removing hand-tuned cost maps entirely.</li>
+              <li>Built a local planner around a learned dynamics model. Rather than regressing poses directly, it predicts the residual between the velocity commanded and the velocity actually achieved, then integrates that into 5 s of future motion, with a separate head emitting a per-step failure probability. An MPPI planner scores candidates on distance to goal and predicted risk alone — no hand-tuned cost maps anywhere in the loop.</li>
               <li>Deployed the full perception–planning–control pipeline on hardware. The robot clears doorways, pillar fields and corridors on flat ground, reaching goals up to 10 m away within 0.3 m of position error.</li>
-              <li>Built a 10 Hz perception–replanning loop for <strong>moving obstacles</strong>: 100% avoidance in simulation against a 1 m/s obstacle within 4 m, and 80% on hardware, where sensing-to-actuation latency costs the difference. The other 20% holds position rather than colliding — no collisions in either setting.</li>
+              <li>Built a 10 Hz perception–replanning loop for <strong>moving obstacles</strong>, accumulating risk across neighbouring sampled paths so a single missed prediction cannot clear a whole fan of commands: 100% avoidance in simulation against a 1 m/s obstacle within 4 m, and 80% on hardware, where sensing-to-actuation latency costs the difference. The other 20% holds position rather than colliding — no collisions in either setting.</li>
               <li>Fed the semantic layer's image-space goals into this planner as body-frame waypoints, closing the path from a language instruction to motion on the real robot.</li>
             </ul>
             <div class="project-links">
@@ -174,7 +174,7 @@
             <h3>Attention-Based Perceptive Locomotion for a Humanoid</h3>
             <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> Isaac Lab <span class="dot">·</span> Simulation</div>
             <ul>
-              <li>Trained an attention-based perceptive locomotion policy that reads an elevation map carrying per-cell uncertainty, so occlusions are represented as uncertainty rather than as confident flat ground, and learns to attend to the patch of ground that matters for the next foothold.</li>
+              <li>Trained an attention-based map-encoding policy: a query assembled from global map features and the robot's own proprioception weights the local map features, so the policy attends only to the ground under the next foothold instead of consuming the whole map uniformly. The map carries elevation and per-cell uncertainty as separate channels, which makes an occlusion read as unknown rather than as confident flat ground.</li>
               <li>Crossed <strong>stepping stones, stairs and slopes in both directions, and discrete raised platforms</strong>, arriving at each goal on the commanded heading — on sparse footholds the robot cannot turn on the spot, so the heading has to come out of which stones it steps on and in what order.</li>
               <li>Distilled a privileged-map teacher into a student that runs on its own online mapping, and retuned termination conditions and the terrain curriculum for an armed humanoid: <strong>90% teacher / 75% student</strong> success on unseen terrain.</li>
               <li>Diagnosed and fixed foothold drift during consecutive stair ascents, traced to odometry–elevation-map misalignment, along with gait instability on descent.</li>

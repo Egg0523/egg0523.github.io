@@ -55,9 +55,9 @@
       <section class="section scroll-animate">
         <h2>How it works</h2>
         <ul class="compact-list">
-          <li><strong>Attention map encoding</strong> &mdash; conditioned on its own state, the policy learns which part of the map to attend to instead of consuming all of it uniformly.</li>
-          <li><strong>Uncertainty-aware mapping</strong> &mdash; depth images are projected into a local elevation grid whose cells carry both a height and a confidence, fused into a common frame through odometry.</li>
-          <li><strong>Teacher&ndash;student distillation</strong> &mdash; a teacher trains against ground-truth elevation maps; the student sees only the map it builds online, and learns to match the teacher while still improving on its own.</li>
+          <li><strong>Attention map encoding</strong> &mdash; a query is assembled from the map's global features together with the robot's own proprioception, and used to weight the local map features. The policy therefore attends to the ground under the next foothold rather than consuming the whole map uniformly, and which patch that is depends on how the robot is currently moving.</li>
+          <li><strong>Uncertainty as a channel</strong> &mdash; depth images are projected into a local elevation grid whose cells carry both a height and a confidence, fused into a common frame through odometry. An occluded cell arrives at the policy marked unknown instead of being filled in as confident flat ground, which is the difference between stepping carefully and stepping into a hole.</li>
+          <li><strong>Teacher&ndash;student distillation</strong> &mdash; the teacher trains against ground-truth elevation maps. The student is given nothing but the map it builds itself and a window of its own recent state, and learns to match the teacher's actions while still improving under its own reward.</li>
           <li><strong>Rates</strong> &mdash; the policy runs at 50&nbsp;Hz, with its joint targets tracked at 400&nbsp;Hz.</li>
           <li><strong>Terrain curriculum</strong> &mdash; dense, climbing and sparse families, promoted and demoted on measured success.</li>
         </ul>

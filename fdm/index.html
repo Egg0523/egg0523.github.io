@@ -57,8 +57,10 @@
         <h2>How it works</h2>
         <ul class="compact-list">
           <li><strong>Inputs</strong> &mdash; proprioceptive history (base velocities, projected gravity, joint states, previous actions) plus a height scan of the local terrain.</li>
-          <li><strong>Prediction</strong> &mdash; five seconds of future motion, with a failure probability attached along the way.</li>
-          <li><strong>Planning</strong> &mdash; a sampling planner rolls candidate command sequences through the model and scores them on distance to goal plus predicted risk. No hand-authored cost map anywhere in the loop.</li>
+          <li><strong>Residual prediction</strong> &mdash; the model does not regress poses. It predicts the gap between the velocity you asked for and the velocity the robot actually achieves, and integrates that into five seconds of motion. Learning a correction to a simple integrator is a far easier target than learning the trajectory outright, and it keeps the output physically consistent by construction.</li>
+          <li><strong>A second head for risk</strong> &mdash; a separate output emits a per-step failure probability, so &ldquo;where will I be&rdquo; and &ldquo;will this end badly&rdquo; are answered by the same forward pass.</li>
+          <li><strong>Planning</strong> &mdash; a sampling planner rolls candidate command sequences through the model and scores them on two terms only: distance to goal, and predicted risk. No hand-authored cost map anywhere in the loop.</li>
+          <li><strong>Risk across neighbours</strong> &mdash; the risk term accumulates over adjacent sampled paths rather than judging each in isolation, so one optimistic prediction cannot clear a whole fan of commands. This is what makes the planner wait rather than squeeze past.</li>
         </ul>
       </section>
 
