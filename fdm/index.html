@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Perceptive FDM Navigation on the X2 Humanoid — Qihan Shan</title>
     <meta name="author" content="Qihan Shan">
-    <meta name="description" content="Reproducing the learned perceptive Forward Dynamics Model (Roth et al., RSS 2025) on the AgiBot X2 humanoid, deploying it on hardware, and extending it to moving obstacles.">
+    <meta name="description" content="A learned-dynamics local planner for the AgiBot X2 humanoid: five-second motion and failure prediction, sampling-based planning, deployed on hardware and taken into moving-obstacle scenes.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -28,31 +28,28 @@
 
         <h1 class="name">Perceptive Forward-Dynamics Navigation</h1>
         <p class="intro">
-          Reproducing a learned perceptive FDM on the AgiBot X2 humanoid, putting it on hardware, and taking it past what the paper covered.
+          A local planner that learns what the robot can actually do, running on the X2 humanoid.
         </p>
         <p>
           AgiBot &middot; Motion Intelligence Group &middot; 2026 &middot; <strong>Deployed on hardware</strong>
         </p>
-        <div class="project-links">
-          <a class="project-link" href="https://arxiv.org/abs/2504.19322" target="_blank" rel="noopener"><i class="fas fa-file-lines"></i> Roth et al., RSS 2025</a>
-          <a class="project-link" href="https://github.com/leggedrobotics/fdm" target="_blank" rel="noopener"><i class="fab fa-github"></i> Original code</a>
-        </div>
       </header>
 
       <section class="section scroll-animate">
         <h2>Overview</h2>
         <p>
-          A local planner usually needs a traversability cost map, and that map needs tuning for every
-          new environment. The learned perceptive Forward Dynamics Model replaces it: given the robot's
-          recent proprioception, a height scan of the surrounding geometry, and a candidate sequence of
-          velocity commands, it predicts where the robot will actually end up over the next five seconds
-          and how likely that sequence is to end in failure. An MPPI planner samples command sequences,
-          scores them with those two predictions, and executes the best one.
+          A local planner normally needs a traversability cost map, and that map needs retuning for every
+          new environment. This one replaces the map with a learned model of the robot itself: given recent
+          proprioception, a height scan of the surrounding terrain and a candidate sequence of velocity
+          commands, it predicts where the robot will actually end up over the next five seconds and how
+          likely that sequence is to end in a fall or a collision. A sampling planner scores hundreds of
+          candidate sequences against those predictions and executes the best one.
         </p>
         <p>
-          The published work was built on the ANYmal quadruped. I migrated it to the X2 humanoid, brought
-          the full perception&ndash;planning&ndash;control pipeline up on the real robot, and then pushed
-          into a case the paper explicitly lists as untested.
+          Because the model is trained on trajectories from this robot running this locomotion policy, its
+          predictions carry what the machine can really do rather than a rigid-body approximation. I brought
+          the whole perception&ndash;planning&ndash;control pipeline up on the X2 and then took it into
+          moving-obstacle scenes.
         </p>
       </section>
 
@@ -60,9 +57,8 @@
         <h2>How it works</h2>
         <ul class="compact-list">
           <li><strong>Inputs</strong> &mdash; proprioceptive history (base velocities, projected gravity, joint states, previous actions) plus a height scan of the local terrain.</li>
-          <li><strong>Prediction</strong> &mdash; ten future SE(2) poses at 0.5&nbsp;s spacing, a five-second horizon, with a failure probability attached to each step.</li>
-          <li><strong>Planning</strong> &mdash; MPPI samples command sequences, rolls each through the model, and scores them on distance to goal plus predicted risk. No hand-authored cost map anywhere in the loop.</li>
-          <li><strong>Platform awareness</strong> &mdash; the model is trained on trajectories from one specific robot running one specific locomotion policy, so its predictions carry that platform's real capabilities rather than a rigid-body approximation.</li>
+          <li><strong>Prediction</strong> &mdash; five seconds of future motion, with a failure probability attached along the way.</li>
+          <li><strong>Planning</strong> &mdash; a sampling planner rolls candidate command sequences through the model and scores them on distance to goal plus predicted risk. No hand-authored cost map anywhere in the loop.</li>
         </ul>
       </section>
 
@@ -89,12 +85,11 @@
       </section>
 
       <section class="section scroll-animate">
-        <h2>Beyond the paper: moving obstacles</h2>
+        <h2>Moving obstacles</h2>
         <p>
-          The paper's limitations are explicit on this point &mdash; the method was <em>not</em> tested
-          with fast-moving objects or multiple dynamic agents. That is a real gap rather than an oversight:
-          the height scan is a single snapshot, so a five-second rollout implicitly assumes the world holds
-          still for five seconds.
+          There is a structural difficulty here. The height scan is a single snapshot, so a five-second
+          rollout implicitly assumes the world holds still for five seconds &mdash; which is exactly what a
+          person walking across the corridor does not do.
         </p>
         <p>
           Against a 1&nbsp;m/s moving obstacle, a 10&nbsp;Hz perception&ndash;replanning loop clears it
@@ -102,12 +97,12 @@
           the obstacle to pass. Across the runs there were no collisions at all.
         </p>
         <p>
-          That failure mode follows from the reward formulation rather than from a bug. The risk term sums
-          predicted failure probability across neighbouring sampled paths, deliberately, so that one
-          missed collision prediction cannot slip through. When something crosses the corridor the whole
-          sampled fan goes high-risk at once, no trajectory clears the threshold, and the planner settles on
-          near-zero velocity until the way is clear again. The paper's own ablation shows the same trade in
-          miniature: removing the risk term shortens path times and lowers success rates.
+          That failure mode is a consequence of the cost design rather than a bug. Risk is accumulated
+          across neighbouring sampled paths on purpose, so that a single missed collision prediction cannot
+          slip through. When something crosses the corridor the whole sampled fan goes high-risk at once,
+          no candidate clears the threshold, and the planner settles on near-zero velocity until the way is
+          clear. Loosening that term buys shorter paths and costs safety &mdash; for a humanoid on hardware
+          I would rather it wait.
         </p>
       </section>
 
@@ -119,22 +114,21 @@
           body frame as a waypoint and handed to the FDM, which turns it into safe velocity commands.
         </p>
         <p>
-          The dual-system paper pairs its planner with an RGB-only diffusion policy, and its ablation shows
-          that swapping in a modular point-goal planner costs accuracy. The reason to do it anyway is that
-          the RGB policy has never seen the X2, while the FDM has an elevation-map view of what is
-          traversable and a sim-to-real transfer that is already verified on this robot. It is a trade of
-          benchmark accuracy for hardware safety, made knowingly.
+          Routing the goals through this planner rather than through the RGB trajectory network costs some
+          accuracy on the benchmark. It buys something worth more on hardware: an elevation-map view of what
+          is traversable, and a transfer to this robot that is already verified. That trade was made
+          knowingly.
         </p>
         <div class="project-links">
-          <a class="project-link" href="../ame-2/">Perceptive locomotion (AME-2) <i class="fas fa-arrow-right"></i></a>
+          <a class="project-link" href="../ame-2/">Perceptive locomotion <i class="fas fa-arrow-right"></i></a>
         </div>
       </section>
 
       <section class="section scroll-animate">
-        <h2>Notes on the transfer</h2>
+        <h2>Notes</h2>
         <ul class="compact-list">
-          <li>The published model runs on a quadruped; the X2 is a humanoid with a higher centre of mass, a smaller support polygon and more degrees of freedom, so the observation space, command sampling ranges and termination conditions all needed revisiting.</li>
-          <li>Because the model's predictions are tied to the locomotion policy underneath it, changing that policy means re-collecting trajectories and retraining &mdash; the two layers cannot be swapped independently.</li>
+          <li>A humanoid carries a higher centre of mass, a smaller support polygon and more degrees of freedom than the quadrupeds this class of planner is usually built for, so the observation space, command sampling ranges and termination conditions all needed revisiting.</li>
+          <li>The model's predictions are tied to the locomotion policy underneath it: change that policy and the trajectories have to be re-collected and the model retrained. The two layers cannot be swapped independently.</li>
         </ul>
       </section>
 

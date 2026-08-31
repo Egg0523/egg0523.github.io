@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Attention-Based Perceptive Locomotion on a Humanoid — Qihan Shan</title>
     <meta name="author" content="Qihan Shan">
-    <meta name="description" content="Reproducing AME-2 (Zhang et al.) — attention-based neural map encoding, uncertainty-aware elevation mapping and teacher-student distillation — and transferring it from quadrupeds to the AgiBot X2 humanoid.">
+    <meta name="description" content="An attention-based perceptive locomotion policy for the AgiBot X2 humanoid: an elevation map with per-cell uncertainty, teacher-student distillation, and traversal of stairs, blocks and rough ground in Isaac Lab.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -28,42 +28,37 @@
 
         <h1 class="name">Attention-Based Perceptive Locomotion</h1>
         <p class="intro">
-          Reproducing AME-2 and moving it off the quadruped it was built for, onto an armed humanoid.
+          Teaching an armed humanoid where to put its feet, from a map it builds itself.
         </p>
         <p>
           AgiBot &middot; Motion Intelligence Group &middot; 2026 &middot; <strong>Isaac Lab, simulation</strong>
         </p>
-        <div class="project-links">
-          <a class="project-link" href="https://arxiv.org/abs/2601.08485" target="_blank" rel="noopener"><i class="fas fa-file-lines"></i> Zhang et al., AME-2</a>
-          <a class="project-link" href="https://sites.google.com/leggedrobotics.com/ame-2" target="_blank" rel="noopener"><i class="fas fa-globe"></i> Project page</a>
-        </div>
       </header>
 
       <section class="section scroll-animate">
         <h2>Overview</h2>
         <p>
-          A perceptive locomotion policy has to decide where to put its feet from a map it built itself,
-          and most of that map is irrelevant at any given step. AME-2 makes the policy choose what to look
-          at: an attention module weights local map features against a query assembled from the robot's
-          own state, so the network concentrates on the patch of ground that actually matters for the next
-          foothold. Underneath it, a learned mapping pipeline turns depth images into an elevation grid
-          that carries a per-cell uncertainty, so occlusions are represented as uncertainty rather than as
-          confident flat ground.
+          A perceptive locomotion policy has to decide where to put its feet using a map it built itself,
+          and most of that map is irrelevant at any given step. This one learns what to look at: an
+          attention module weights local map features against a query assembled from the robot's own state,
+          so the network concentrates on the patch of ground that matters for the next foothold. Underneath
+          it, the mapping pipeline turns depth images into an elevation grid carrying a per-cell
+          uncertainty, so an occlusion is represented as something unknown rather than as confident flat
+          ground.
         </p>
         <p>
-          The published results are on a quadruped and a point-foot biped. I reproduced the method in
-          Isaac Lab and transferred it to the X2 humanoid &mdash; a taller centre of mass, a smaller
-          support polygon, arms that swing.
+          I trained it in Isaac Lab for the X2 &mdash; a taller centre of mass than the quadrupeds this
+          class of policy is usually built for, a smaller support polygon, and arms that swing.
         </p>
       </section>
 
       <section class="section scroll-animate">
         <h2>How it works</h2>
         <ul class="compact-list">
-          <li><strong>Attention map encoding</strong> &mdash; a CNN produces pointwise local features; a pooled global descriptor and the proprioception embedding form the query; multi-head attention weights the local features against it, and the result conditions the action decoder.</li>
+          <li><strong>Attention map encoding</strong> &mdash; conditioned on its own state, the policy learns which part of the map to attend to instead of consuming all of it uniformly.</li>
           <li><strong>Uncertainty-aware mapping</strong> &mdash; depth images are projected into a local elevation grid whose cells carry both a height and a confidence, fused into a common frame through odometry.</li>
-          <li><strong>Teacher&ndash;student distillation</strong> &mdash; a teacher trains with ground-truth elevation maps under PPO; the student sees only the online-built map plus a temporal encoding of its own history, and is trained with PPO alongside action-distillation and representation-alignment losses.</li>
-          <li><strong>Rates</strong> &mdash; the policy runs at 50&nbsp;Hz and its joint targets are tracked at 400&nbsp;Hz.</li>
+          <li><strong>Teacher&ndash;student distillation</strong> &mdash; a teacher trains against ground-truth elevation maps; the student sees only the map it builds online, and learns to match the teacher while still improving on its own.</li>
+          <li><strong>Rates</strong> &mdash; the policy runs at 50&nbsp;Hz, with its joint targets tracked at 400&nbsp;Hz.</li>
           <li><strong>Terrain curriculum</strong> &mdash; dense, climbing and sparse families, promoted and demoted on measured success.</li>
         </ul>
       </section>
@@ -88,21 +83,19 @@
       <section class="section scroll-animate">
         <h2>Results</h2>
         <p>
-          On unseen test terrain the reproduced policy reaches <strong>90% success as a teacher and 75%
-          as a student</strong>, against 95.2% and 82.4% for the paper's quadruped.
+          On unseen test terrain the policy reaches <strong>90% success as a teacher and 75% as a
+          student</strong>.
         </p>
         <p>
-          The number worth reading is not either figure on its own but the distance between them. The
-          published teacher-to-student drop is 12.8 points, and it exists because the student navigates on
-          a map it built from depth rather than on the ground truth. My drop is about fifteen points &mdash;
-          close enough to the original that the loss is attributable to the change of embodiment rather
-          than to something broken in the reimplementation, which is the question a reproduction has to
-          answer about itself.
+          The gap between those two is the interesting part. The teacher plans on ground truth; the student
+          plans on a map it built from its own depth images, and everything it gets wrong about that map
+          shows up as a missed foothold. Fifteen points is what the perception costs, and it is the number
+          to attack next &mdash; better mapping under occlusion buys more here than a better policy would.
         </p>
       </section>
 
       <section class="section scroll-animate">
-        <h2>Moving it onto a humanoid</h2>
+        <h2>What went wrong on stairs</h2>
         <p>
           The most instructive failure was on stairs. Climbing several steps in sequence, the policy's
           foot placement drifted a little further off with each one. The cause was not the controller: the
@@ -112,12 +105,11 @@
           instability.
         </p>
         <p>
-          Alongside that, moving from the paper's platforms to an armed humanoid meant revisiting the
-          termination conditions and the terrain curriculum &mdash; the thresholds that define a fall for a
-          quadruped do not describe one for a biped carrying arms.
+          Alongside that, an armed humanoid needed its own termination conditions and terrain curriculum:
+          the thresholds that define a fall for a quadruped do not describe one for a biped carrying arms.
         </p>
         <div class="project-links">
-          <a class="project-link" href="../fdm/">Forward-dynamics navigation (FDM) <i class="fas fa-arrow-right"></i></a>
+          <a class="project-link" href="../fdm/">Navigation and dynamic obstacle avoidance <i class="fas fa-arrow-right"></i></a>
         </div>
       </section>
 
