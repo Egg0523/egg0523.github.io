@@ -72,6 +72,18 @@
           Crossing open ground onto a discrete stepping-block field, with the gravel patch and pyramid stairs in frame. Hover or tap to play.
         </div>
 
+        <p style="margin-top:22px">
+          The policy crosses <strong>stepping stones, stairs and slopes in both directions, and discrete
+          raised platforms</strong>, and arrives at each goal on the commanded heading.
+        </p>
+        <p>
+          That last part is harder than it sounds. On open ground a robot can turn on the spot to fix its
+          heading; on a field of stepping stones there is nowhere to put a foot that would let it. The
+          heading has to fall out of the footholds themselves &mdash; which stones the policy picks, in
+          which order, and how it distributes the turn across them &mdash; which means orientation stops
+          being something you correct at the end and becomes part of the same decision as where to step.
+        </p>
+
         <!-- 更多视频就位后，按同样结构往下加：
         <div class="project-media" style="margin-top:26px">
           <video src="../images/ame2-stairs.mp4" poster="../images/poster-ame2-stairs.jpg" loop muted playsinline preload="none"></video>

@@ -122,7 +122,7 @@
           </div>
           <div class="subentry">
             <div class="subentry-title">Perceptive locomotion — traversing complex 3-D terrain</div>
-            <div class="entry-detail">Isaac Lab · 90% teacher / 75% student success on unseen terrain</div>
+            <div class="entry-detail">Isaac Lab · stepping stones, stairs, slopes, raised platforms · 90% teacher / 75% student on unseen terrain</div>
           </div>
         </div>
       </section>
@@ -175,6 +175,7 @@
             <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> Isaac Lab <span class="dot">·</span> Simulation</div>
             <ul>
               <li>Trained an attention-based perceptive locomotion policy that reads an elevation map carrying per-cell uncertainty, so occlusions are represented as uncertainty rather than as confident flat ground, and learns to attend to the patch of ground that matters for the next foothold.</li>
+              <li>Crossed <strong>stepping stones, stairs and slopes in both directions, and discrete raised platforms</strong>, arriving at each goal on the commanded heading — on sparse footholds the robot cannot turn on the spot, so the heading has to come out of which stones it steps on and in what order.</li>
               <li>Distilled a privileged-map teacher into a student that runs on its own online mapping, and retuned termination conditions and the terrain curriculum for an armed humanoid: <strong>90% teacher / 75% student</strong> success on unseen terrain.</li>
               <li>Diagnosed and fixed foothold drift during consecutive stair ascents, traced to odometry–elevation-map misalignment, along with gait instability on descent.</li>
             </ul>
