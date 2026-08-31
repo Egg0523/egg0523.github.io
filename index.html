@@ -90,13 +90,11 @@
 
         <article class="project">
           <div class="project-media">
-            <!-- 视频就位后替换成：
-                 <video src="images/proj-fdm.mp4" autoplay loop muted playsinline></video> -->
-            <div class="media-placeholder"><i class="fas fa-video"></i></div>
+            <video src="images/proj-fdm.mp4" autoplay loop muted playsinline></video>
           </div>
           <div class="project-body">
             <h3>Perceptive Forward-Dynamics Navigation on the X2 Humanoid</h3>
-            <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> FDM (RSS 2025) migration and extension <span class="dot">·</span> Deployed on hardware</div>
+            <div class="project-meta">AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> FDM (RSS 2025) migration and extension <span class="dot">·</span> Simulation and hardware</div>
             <ul>
               <li>Migrated a learned perceptive Forward Dynamics Model to the X2 humanoid: proprioceptive history plus an elevation map predict 5 s of future SE(2) poses and failure risk, feeding an MPPI sampling planner that emits velocity commands directly — removing hand-tuned cost maps entirely.</li>
               <li>Deployed the full perception–planning–control pipeline on hardware. The robot traverses doorways, ascending and descending stairs, pillar fields, and corridors, reaching 4 m goals within 0.3 m of position error.</li>
