@@ -80,9 +80,16 @@ if (langToggle) {
   nodes.forEach(el => english.set(el, el.innerHTML));
 
   const LABEL = { en: 'English', zh: '中文' };
-  const TITLE = { en: 'Qihan Shan', zh: '单琪涵' };
   const HREF  = { en: '?lang=zh', zh: '?lang=en' };
   const HINT  = { en: '切换到中文', zh: 'Switch to English' };
+  const TITLE = {
+    en: document.title,
+    zh: langToggle.getAttribute('data-title-zh') || document.title
+  };
+
+  // links to other pages of this site keep whichever language you are reading in
+  const pageLinks = Array.from(document.querySelectorAll('a[href]'))
+    .filter(a => (a.getAttribute('href') || '').endsWith('/'));
 
   const apply = (lang) => {
     nodes.forEach(el => {
@@ -95,6 +102,10 @@ if (langToggle) {
     langToggle.innerHTML = '<i class="fas fa-language"></i> ' + LABEL[other];
     langToggle.setAttribute('href', HREF[lang]);
     langToggle.setAttribute('aria-label', HINT[lang]);
+    pageLinks.forEach(a => {
+      const base = (a.getAttribute('href') || '').split('?')[0];
+      a.setAttribute('href', lang === 'zh' ? base + '?lang=zh' : base);
+    });
   };
 
   let current = new URLSearchParams(window.location.search).get('lang') === 'zh' ? 'zh' : 'en';
