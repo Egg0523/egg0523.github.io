@@ -173,16 +173,26 @@
       <section class="section scroll-animate">
         <h2>Carrying the semantic layer onto the robot</h2>
         <p>
-          The FDM also serves as the action expert for the layered navigation stack. The VLM planner emits
-          a goal as a pixel coordinate in the current camera view; that goal is projected into the robot's
-          body frame as a waypoint and handed to the FDM, which turns it into safe velocity commands.
+          The FDM also serves as the action expert for the layered navigation stack. On the robot the
+          semantic layer runs on <strong>Qwen-3-8B-VL</strong>: it reads the instruction together with the
+          current camera view and returns a goal as a pixel coordinate. That point is projected into the
+          robot&rsquo;s body frame as a waypoint and handed to the FDM, which turns it into velocity
+          commands the machine can actually execute.
         </p>
         <p>
-          Routing the goals through this planner rather than through the RGB trajectory network costs some
-          accuracy on the benchmark. It buys something worth more on hardware: an elevation-map view of what
-          is traversable, and a transfer to this robot that is already verified. That trade was made
-          knowingly.
+          The division of labour is deliberate. The language model decides <em>where</em> to go and is
+          allowed to be slow about it; nothing it emits is trusted to be reachable. Everything about
+          <em>whether the robot can get there</em> &mdash; what the ground looks like, what the body will do
+          if asked, when to wait &mdash; stays with the planner underneath, which already runs at rate and
+          is already verified on this robot.
         </p>
+
+        <div class="project-media">
+          <video src="../images/fdm-semantic.mp4" poster="../images/poster-fdm-semantic.jpg" loop muted playsinline preload="none"></video>
+        </div>
+        <div class="project-meta" style="margin-top:10px">
+          Driving to a goal named in language rather than given as a coordinate. Hover or tap to play.
+        </div>
         <div class="project-links">
           <a class="project-link" href="../ame-2/">Perceptive locomotion <i class="fas fa-arrow-right"></i></a>
         </div>
