@@ -71,3 +71,44 @@ if (projectVideos.length) {
     video.addEventListener('click', () => (video.paused ? start() : stop()));
   });
 }
+
+// Language toggle: English <-> 中文.  Chinese lives in data-zh on each element.
+const langToggle = document.querySelector('.lang-toggle');
+if (langToggle) {
+  const nodes = document.querySelectorAll('[data-zh]');
+  const english = new Map();
+  nodes.forEach(el => english.set(el, el.innerHTML));
+
+  const LABEL = { en: 'English', zh: '中文' };
+  const TITLE = { en: 'Qihan Shan', zh: '单琪涵' };
+  const HREF  = { en: '?lang=zh', zh: '?lang=en' };
+  const HINT  = { en: '切换到中文', zh: 'Switch to English' };
+
+  const apply = (lang) => {
+    nodes.forEach(el => {
+      el.innerHTML = lang === 'zh' ? el.getAttribute('data-zh') : english.get(el);
+    });
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    document.title = TITLE[lang];
+    // the pill always offers the other language
+    const other = lang === 'zh' ? 'en' : 'zh';
+    langToggle.innerHTML = '<i class="fas fa-language"></i> ' + LABEL[other];
+    langToggle.setAttribute('href', HREF[lang]);
+    langToggle.setAttribute('aria-label', HINT[lang]);
+  };
+
+  let current = new URLSearchParams(window.location.search).get('lang') === 'zh' ? 'zh' : 'en';
+  if (current === 'zh') apply('zh');
+
+  langToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    current = current === 'zh' ? 'en' : 'zh';
+    apply(current);
+    try {
+      const url = new URL(window.location.href);
+      if (current === 'zh') url.searchParams.set('lang', 'zh');
+      else url.searchParams.delete('lang');
+      history.replaceState(null, '', url);
+    } catch (err) { /* file:// or old browser — the toggle still works */ }
+  });
+}
