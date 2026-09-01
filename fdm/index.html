@@ -65,42 +65,65 @@
       </section>
 
       <section class="section scroll-animate">
-        <h2>Running on the X2</h2>
-        <div class="project-media">
-          <video src="../images/proj-fdm.mp4" poster="../images/poster-fdm.jpg" loop muted playsinline preload="none"></video>
-        </div>
-        <div class="project-meta" style="margin-top:10px">
-          The X2 walking a goal-directed route on hardware while a person crosses in front of it. Hover or tap to play.
-        </div>
-
-        <p style="margin-top:22px">
-          On hardware the robot clears doorways, pillar fields and corridors on flat ground, and reaches
-          goals up to 10&nbsp;m away within 0.3&nbsp;m of position error.
+        <h2>In simulation</h2>
+        <p>
+          Everything was brought up in simulation first, where the robot can be asked to walk into things
+          and nothing breaks. The clip below runs the physics rollout beside the planner view: the fan of
+          sampled command sequences, each one scored by the model, and the trajectory that wins.
         </p>
-
-        <div class="project-media" style="margin-top:26px">
+        <div class="project-media">
           <video src="../images/fdm-sim.mp4" poster="../images/poster-fdm-sim.jpg" loop muted playsinline preload="none"></video>
         </div>
         <div class="project-meta" style="margin-top:10px">
-          The same planner in simulation &mdash; physics rollout on the left, the sampled command fan and the
-          selected trajectory on the right. Hover or tap to play.
+          Physics rollout on the left, the sampled fan and the selected trajectory on the right. Hover or tap to play.
         </div>
 
+        <p style="margin-top:22px">
+          There is a structural difficulty with moving obstacles here. The height scan is a single snapshot,
+          so a five-second rollout implicitly assumes the world holds still for five seconds &mdash; which is
+          exactly what a person walking across the corridor does not do. Closing a perception&ndash;replanning
+          loop at 10&nbsp;Hz is what makes the assumption survivable: the plan is never more than a tenth of a
+          second old.
+        </p>
+        <p>
+          Against a 1&nbsp;m/s obstacle inside 4&nbsp;m, the planner clears it <strong>every time</strong> in
+          simulation.
+        </p>
       </section>
 
       <section class="section scroll-animate">
-        <h2>Moving obstacles</h2>
+        <h2>On hardware, tethered</h2>
         <p>
-          There is a structural difficulty here. The height scan is a single snapshot, so a five-second
-          rollout implicitly assumes the world holds still for five seconds &mdash; which is exactly what a
-          person walking across the corridor does not do.
+          The first hardware bring-up kept perception and planning on an off-board machine, with the robot on
+          a cable. That is the arrangement in both clips below &mdash; the tether is the loop of cable
+          trailing across the floor.
         </p>
-        <p>
-          In simulation, a 10&nbsp;Hz perception&ndash;replanning loop clears a 1&nbsp;m/s obstacle inside
-          4&nbsp;m <strong>every time</strong>. On the real robot the same planner clears it
-          <strong>80%</strong> of the time. The gap is latency: between the depth frame arriving and the
-          motors acting on the replanned command, the obstacle has already moved, and the plan the robot
-          executes is a plan for a world a moment out of date.
+
+        <div class="project-media">
+          <video src="../images/fdm-wired-goal.mp4" poster="../images/poster-fdm-wired-goal.jpg" loop muted playsinline preload="none"></video>
+        </div>
+        <div class="project-meta" style="margin-top:10px">
+          Navigating to a commanded goal. The monitor at the start shows the elevation map the planner is
+          working from. Hover or tap to play.
+        </div>
+
+        <p style="margin-top:22px">
+          The robot clears doorways, pillar fields and corridors on flat ground, and reaches goals up to
+          10&nbsp;m away within <strong>0.3&nbsp;m</strong> of position error.
+        </p>
+
+        <div class="project-media" style="margin-top:26px">
+          <video src="../images/fdm-wired-avoid.mp4" poster="../images/poster-fdm-wired-avoid.jpg" loop muted playsinline preload="none"></video>
+        </div>
+        <div class="project-meta" style="margin-top:10px">
+          The same planner with a person stepping into its path. Hover or tap to play.
+        </div>
+
+        <p style="margin-top:22px">
+          Here the same 1&nbsp;m/s obstacle is cleared <strong>80%</strong> of the time. The gap to
+          simulation is latency: between the depth frame arriving and the motors acting on the replanned
+          command, the obstacle has already moved, and the plan the robot executes is a plan for a world a
+          moment out of date.
         </p>
         <p>
           The other 20% is not a collision. The robot stops and waits for the obstacle to pass. Across both
@@ -109,10 +132,10 @@
         <p>
           That waiting behaviour is a consequence of the cost design rather than a bug. Risk is accumulated
           across neighbouring sampled paths on purpose, so that a single missed collision prediction cannot
-          slip through. When something crosses the corridor the whole sampled fan goes high-risk at once,
-          no candidate clears the threshold, and the planner settles on near-zero velocity until the way is
-          clear. Loosening that term buys shorter paths and costs safety &mdash; for a humanoid on hardware
-          I would rather it wait.
+          slip through. When something crosses the corridor the whole sampled fan goes high-risk at once, no
+          candidate clears the threshold, and the planner settles on near-zero velocity until the way is
+          clear. Loosening that term buys shorter paths and costs safety &mdash; for a humanoid on hardware I
+          would rather it wait.
         </p>
       </section>
 
