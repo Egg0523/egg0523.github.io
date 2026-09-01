@@ -204,6 +204,34 @@
         <div class="project-meta" style="margin-top:10px">
           Driving to a goal named in language rather than given as a coordinate. Hover or tap to play.
         </div>
+      </section>
+
+      <section class="section scroll-animate">
+        <h2>3-D terrain, and what the planner does not know</h2>
+        <p>
+          What this model predicts is a path and a probability of failing. Neither of those says anything
+          about feet. Point it at a field of stepping stones and it will find a way across the field &mdash;
+          but it has no representation of where a foot should land, and getting across at all is entirely
+          the work of the locomotion policy underneath it.
+        </p>
+
+        <div class="project-media">
+          <video src="../images/fdm-terrain.mp4" poster="../images/poster-fdm-terrain.jpg" loop muted playsinline preload="none"></video>
+        </div>
+        <div class="project-meta" style="margin-top:10px">
+          Crossing a stepping-stone field, with the elevation map on the left. Hover or tap to play.
+        </div>
+
+        <p style="margin-top:22px">
+          Watch the stones closely and the robot sometimes walks <em>between</em> the posts rather than over
+          their tops. The path was fine. The footholds were never part of the question being asked, so
+          nothing in this layer was ever going to choose them.
+        </p>
+        <p>
+          That gap is why I went and trained the locomotion policy on the next page. It puts foothold
+          selection inside the network, so the robot is picking where to step instead of surviving whatever
+          the path hands it.
+        </p>
         <div class="project-links">
           <a class="project-link" href="../ame-2/">Perceptive locomotion <i class="fas fa-arrow-right"></i></a>
         </div>
