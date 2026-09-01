@@ -47,9 +47,12 @@
         </p>
         <p>
           Because the model is trained on trajectories from this robot running this locomotion policy, its
-          predictions carry what the machine can really do rather than a rigid-body approximation. I brought
-          the whole perception&ndash;planning&ndash;control pipeline up on the X2 and then took it into
-          moving-obstacle scenes.
+          predictions carry what the machine can really do rather than a rigid-body approximation.
+        </p>
+        <p>
+          The pages below follow how it got onto the robot: first in simulation, then on hardware with
+          perception and planning still running off-board over a cable, and finally with the cable gone and
+          the whole chain on the robot&rsquo;s own compute.
         </p>
       </section>
 
@@ -137,6 +140,34 @@
           clear. Loosening that term buys shorter paths and costs safety &mdash; for a humanoid on hardware I
           would rather it wait.
         </p>
+      </section>
+
+      <section class="section scroll-animate">
+        <h2>On hardware, untethered</h2>
+        <p>
+          Then the cable came off. Perception and planning moved onto the computer the robot carries, and
+          what still goes over the air is the operator&rsquo;s link rather than the control loop. Two things
+          change with that. The whole chain now has to fit inside the compute the robot has and still close
+          at rate &mdash; there is no bigger machine to fall back on. And the robot is no longer working
+          inside the radius of a cable, so it can be sent at a goal anywhere in the room and walk through
+          whatever happens to be in the way.
+        </p>
+
+        <div class="project-media">
+          <video src="../images/fdm-untethered-goal.mp4" poster="../images/poster-fdm-untethered-goal.jpg" loop muted playsinline preload="none"></video>
+        </div>
+        <div class="project-meta" style="margin-top:10px">
+          Navigating to a goal with nothing attached. The laptop in the opening shot is showing the point
+          cloud the map is built from. Hover or tap to play.
+        </div>
+
+        <div class="project-media" style="margin-top:26px">
+          <video src="../images/fdm-untethered-avoid.mp4" poster="../images/poster-fdm-untethered-avoid.jpg" loop muted playsinline preload="none"></video>
+        </div>
+        <div class="project-meta" style="margin-top:10px">
+          The same avoidance behaviour off the cable, across a working lab floor with people and equipment
+          around it. Hover or tap to play.
+        </div>
       </section>
 
       <section class="section scroll-animate">
