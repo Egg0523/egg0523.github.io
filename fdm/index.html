@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Perceptive FDM Navigation on the X2 Humanoid — Qihan Shan</title>
     <meta name="author" content="Qihan Shan">
-    <meta name="description" content="A learned-dynamics local planner for the AgiBot X2 humanoid: five-second motion and failure prediction, sampling-based planning, deployed on hardware and taken into moving-obstacle scenes.">
+    <meta name="description" content="A learned-dynamics local planner for the AgiBot X2 humanoid: 5 s motion and failure prediction, sampling-based planning, tethered and untethered hardware deployment, and a VLM semantic layer.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -24,12 +24,12 @@
       <header class="header">
         <div class="project-links" style="margin-bottom:18px">
           <a class="project-link" href="../" data-zh='<i class="fas fa-arrow-left"></i> 单琪涵'><i class="fas fa-arrow-left"></i> Qihan Shan</a>
-          <a class="project-link lang-toggle" href="?lang=zh" role="button" data-title-zh="X2 人形机器人上的前向动力学感知导航 — 单琪涵"><i class="fas fa-language"></i> 中文</a>
+          <a class="project-link lang-toggle" href="?lang=zh" role="button" data-title-zh="前向动力学感知导航 — 单琪涵"><i class="fas fa-language"></i> 中文</a>
         </div>
 
         <h1 class="name" data-zh='前向动力学感知导航'>Perceptive Forward-Dynamics Navigation</h1>
-        <p class="intro" data-zh='一个学会了机器人自身能力的局部规划器，跑在 X2 人形机器人上。'>
-          A local planner that learns what the robot can actually do, running on the X2 humanoid.
+        <p class="intro" data-zh='面向 AgiBot X2 人形机器人的学习式动力学局部规划器。'>
+          A learned-dynamics local planner for the AgiBot X2 humanoid.
         </p>
         <p data-zh='智元机器人 &middot; 运动智能组 &middot; 2026 &middot; <strong>真机部署</strong>'>
           AgiBot &middot; Motion Intelligence Group &middot; 2026 &middot; <strong>Deployed on hardware</strong>
@@ -38,200 +38,157 @@
 
       <section class="section scroll-animate">
         <h2 data-zh='概述'>Overview</h2>
-        <p data-zh='局部规划器通常要有一张可通行性代价地图，而这张图每换一个环境就得重新调。这里用一个学出来的机器人自身模型替掉了它：给定最近的本体感知、周围地形的高度扫描，以及一串候选速度指令，它预测机器人在未来五秒里实际会走到哪，以及这串指令有多大概率以摔倒或碰撞收场。采样规划器拿这些预测给几百条候选打分，执行最好的那条。'>
-          A local planner normally needs a traversability cost map, and that map needs retuning for every
-          new environment. This one replaces the map with a learned model of the robot itself: given recent
-          proprioception, a height scan of the surrounding terrain and a candidate sequence of velocity
-          commands, it predicts where the robot will actually end up over the next five seconds and how
-          likely that sequence is to end in a fall or a collision. A sampling planner scores hundreds of
-          candidate sequences against those predictions and executes the best one.
+        <p data-zh='一个建立在机器人自身学习模型之上的局部规划器，取代了需要逐环境调参的可通行性代价地图。给定本体感知历史、局部高度扫描与候选速度指令序列，模型预测 5&nbsp;s 时域内的运动，并同时输出逐步失败概率。采样规划器以到点距离与预测风险两项对数百条候选打分，执行最优解。'>
+          A local planner built on a learned model of the robot rather than a traversability cost map that
+          needs retuning per environment. Given proprioceptive history, a local height scan and a candidate
+          sequence of velocity commands, the model predicts the resulting motion over a 5&nbsp;s horizon
+          together with a per-step failure probability. A sampling planner scores several hundred candidates
+          on two terms &mdash; distance to goal and predicted risk &mdash; and executes the best.
         </p>
-        <p data-zh='因为模型是在这台机器人跑这套运动策略产生的轨迹上训练的，它的预测带的是这台机器实际做得到什么，而不是一个刚体近似。'>
-          Because the model is trained on trajectories from this robot running this locomotion policy, its
-          predictions carry what the machine can really do rather than a rigid-body approximation.
-        </p>
-        <p data-zh='下面按它上机的顺序展开：先是仿真，然后是感知与规划还挂在外接主机、机器人拖着一根线的阶段，最后是线拔掉、整条链路跑在机器人自己算力上的阶段。'>
-          The pages below follow how it got onto the robot: first in simulation, then on hardware with
-          perception and planning still running off-board over a cable, and finally with the cable gone and
-          the whole chain on the robot&rsquo;s own compute.
+        <p data-zh='训练轨迹取自本体在同一运动策略下的运行数据，因此预测反映的是该平台的实际能力，而非刚体近似。'>
+          Training trajectories come from this robot under this locomotion policy, so the predictions reflect
+          the platform&rsquo;s actual capability rather than a rigid-body approximation.
         </p>
       </section>
 
       <section class="section scroll-animate">
-        <h2 data-zh='原理'>How it works</h2>
+        <h2 data-zh='方法'>Method</h2>
         <ul class="compact-list">
-          <li data-zh='<strong>输入</strong> &mdash; 本体感知历史（机体速度、投影重力、关节状态、上一步动作），加上局部地形的高度扫描。'><strong>Inputs</strong> &mdash; proprioceptive history (base velocities, projected gravity, joint states, previous actions) plus a height scan of the local terrain.</li>
-          <li data-zh='<strong>残差预测</strong> &mdash; 模型不回归位姿。它预测下发速度与机器人实际做到的速度之间的差，再把这个差积分成五秒的运动。学一个对简单积分器的修正，比直接学整条轨迹好学得多，而且输出在构造上就是物理自洽的。'><strong>Residual prediction</strong> &mdash; the model does not regress poses. It predicts the gap between the velocity you asked for and the velocity the robot actually achieves, and integrates that into five seconds of motion. Learning a correction to a simple integrator is a far easier target than learning the trajectory outright, and it keeps the output physically consistent by construction.</li>
-          <li data-zh='<strong>另一个头输出风险</strong> &mdash; 一个独立的输出给出逐步的失败概率，于是“我会走到哪”和“这会不会出事”由同一次前向推理一起回答。'><strong>A second head for risk</strong> &mdash; a separate output emits a per-step failure probability, so &ldquo;where will I be&rdquo; and &ldquo;will this end badly&rdquo; are answered by the same forward pass.</li>
-          <li data-zh='<strong>规划</strong> &mdash; 采样规划器把候选指令序列过一遍模型，只用两项打分：到目标点的距离，和预测风险。整条回路里没有任何人工写死的代价地图。'><strong>Planning</strong> &mdash; a sampling planner rolls candidate command sequences through the model and scores them on two terms only: distance to goal, and predicted risk. No hand-authored cost map anywhere in the loop.</li>
-          <li data-zh='<strong>风险在相邻轨迹间累加</strong> &mdash; 风险项在相邻采样路径之间累加，而不是各判各的，于是一次乐观的预测不足以放行一整束指令。这也是规划器宁可等、也不硬挤过去的原因。'><strong>Risk across neighbours</strong> &mdash; the risk term accumulates over adjacent sampled paths rather than judging each in isolation, so one optimistic prediction cannot clear a whole fan of commands. This is what makes the planner wait rather than squeeze past.</li>
+          <li data-zh='<strong>输入</strong> &mdash; 本体感知历史（机体速度、投影重力、关节状态、上一步动作）与局部地形高度扫描。'><strong>Inputs</strong> &mdash; proprioceptive history (base velocity, projected gravity, joint states, previous actions) and a local terrain height scan.</li>
+          <li data-zh='<strong>残差预测</strong> &mdash; 模型预测指令速度与实际执行速度之间的残差，再积分为 5&nbsp;s 轨迹，而非直接回归位姿。该形式简化了学习目标，并保证输出的物理自洽性。'><strong>Residual prediction</strong> &mdash; the model predicts the residual between commanded and achieved velocity and integrates it into a 5&nbsp;s trajectory, rather than regressing pose directly. This simplifies the learning target and keeps the output physically consistent by construction.</li>
+          <li data-zh='<strong>风险输出头</strong> &mdash; 同一次前向推理中，由独立输出头给出逐步失败概率。'><strong>Risk head</strong> &mdash; a separate output emits a per-step failure probability from the same forward pass.</li>
+          <li data-zh='<strong>规划</strong> &mdash; 对采样指令序列执行 MPPI，仅以到点距离与预测风险两项打分，全流程无人工代价地图。'><strong>Planning</strong> &mdash; MPPI over sampled command sequences, scored on goal distance and predicted risk only. No hand-authored cost map in the loop.</li>
+          <li data-zh='<strong>风险聚合</strong> &mdash; 风险项在相邻采样轨迹之间累加，单次乐观预测不足以放行整束候选。'><strong>Risk aggregation</strong> &mdash; risk accumulates across neighbouring sampled paths, so a single optimistic prediction cannot clear an entire fan of candidates.</li>
         </ul>
       </section>
 
       <section class="section scroll-animate">
         <h2 data-zh='仿真'>In simulation</h2>
-        <p data-zh='所有东西都先在仿真里跑起来，在那里让机器人直接撞上去也不会坏。下面这段把物理仿真和规划器视角并排放着：成束的采样指令序列，每条都由模型打分，以及最后胜出的那条轨迹。'>
-          Everything was brought up in simulation first, where the robot can be asked to walk into things
-          and nothing breaks. The clip below runs the physics rollout beside the planner view: the fan of
-          sampled command sequences, each one scored by the model, and the trajectory that wins.
+        <p data-zh='规划器先在仿真中开发与评估。对 4&nbsp;m 内 1&nbsp;m/s 的运动障碍，10&nbsp;Hz 感知—重规划闭环下避障成功率 <strong>100%</strong>。'>
+          The planner was developed and evaluated in simulation first. Against a 1&nbsp;m/s obstacle within
+          4&nbsp;m, a 10&nbsp;Hz perception&ndash;replanning loop achieves <strong>100%</strong> avoidance.
         </p>
         <div class="project-media">
           <video src="../images/fdm-sim.mp4" poster="../images/poster-fdm-sim.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='左边是规划器看到的地图 &mdash; 障碍、机器人位姿和采样轨迹 &mdash; 右边是它在驱动的仿真器。悬停或点击播放。'>
-          The planner&rsquo;s map view on the left &mdash; obstacles, the robot&rsquo;s pose and the
-          sampled trajectories &mdash; and the simulator it is driving on the right. Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='左为规划器地图视角（障碍、机器人位姿、采样轨迹），右为其驱动的仿真器。悬停或点击播放。'>
+          Left, the planner map view &mdash; obstacles, robot pose and sampled trajectories; right, the
+          simulator it drives. Hover or tap to play.
         </div>
-
-        <p style="margin-top:22px" data-zh='这里有一个结构性的难点。高度扫描只是一张快照，所以五秒的推演隐含地假设世界在这五秒里不动 &mdash; 而横穿走廊的人恰恰不是这样。把感知—重规划闭环压到 10&nbsp;Hz 才让这个假设站得住：手里的计划最多只过时十分之一秒。'>
-          There is a structural difficulty with moving obstacles here. The height scan is a single snapshot,
-          so a five-second rollout implicitly assumes the world holds still for five seconds &mdash; which is
-          exactly what a person walking across the corridor does not do. Closing a perception&ndash;replanning
-          loop at 10&nbsp;Hz is what makes the assumption survivable: the plan is never more than a tenth of a
-          second old.
-        </p>
-        <p data-zh='对 4&nbsp;m 内 1&nbsp;m/s 的运动物体，仿真中<strong>每一次</strong>都能避开。'>
-          Against a 1&nbsp;m/s obstacle inside 4&nbsp;m, the planner clears it <strong>every time</strong> in
-          simulation.
+        <p style="margin-top:22px" data-zh='高度扫描为单帧快照，5&nbsp;s 推演隐含静态世界假设；10&nbsp;Hz 的重规划频率限定了该假设的失效上限。'>
+          The height scan is a single snapshot, so a 5&nbsp;s rollout assumes a static world. The
+          replanning rate bounds how stale that assumption can become.
         </p>
       </section>
 
       <section class="section scroll-animate">
         <h2 data-zh='真机 · 有线'>On hardware, tethered</h2>
-        <p data-zh='第一版真机把感知和规划留在外接主机上，机器人拖着一根线。下面两段都是这个状态 &mdash; 地上那圈跟着走的线就是。'>
-          The first hardware bring-up kept perception and planning on an off-board machine, with the robot on
-          a cable. That is the arrangement in both clips below &mdash; the tether is the loop of cable
-          trailing across the floor.
+        <p data-zh='首次真机部署，感知与规划运行于外接主机，经有线连接。平地场景下完成穿门、绕柱与走廊通行，10&nbsp;m 范围内到点误差小于 <strong>0.3&nbsp;m</strong>。'>
+          First hardware deployment, with perception and planning on an off-board machine over a cable. On
+          flat ground the robot clears doorways, pillar fields and corridors, reaching goals up to
+          10&nbsp;m away within <strong>0.3&nbsp;m</strong> of position error.
         </p>
 
         <div class="project-media">
           <video src="../images/fdm-wired-goal.mp4" poster="../images/poster-fdm-wired-goal.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='导航到指定目标点。开头那台显示器上是规划器正在用的高程图。悬停或点击播放。'>
-          Navigating to a commanded goal. The monitor at the start shows the elevation map the planner is
-          working from. Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='导航至指定目标点；显示器上为规划器正在使用的高程图。'>
+          Navigation to a commanded goal; the monitor shows the elevation map in use.
         </div>
-
-        <p style="margin-top:22px" data-zh='机器人在平地上穿门、绕柱、通过走廊，10&nbsp;m 范围内的到点误差在 <strong>0.3&nbsp;m</strong> 以内。'>
-          The robot clears doorways, pillar fields and corridors on flat ground, and reaches goals up to
-          10&nbsp;m away within <strong>0.3&nbsp;m</strong> of position error.
-        </p>
 
         <div class="project-media" style="margin-top:26px">
           <video src="../images/fdm-wired-avoid.mp4" poster="../images/poster-fdm-wired-avoid.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='同一套规划器，有人走进它的路径。悬停或点击播放。'>
-          The same planner with a person stepping into its path. Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='同一规划器，有人进入其路径。'>
+          The same planner with a person entering its path.
         </div>
 
-        <p style="margin-top:22px" data-zh='同样 1&nbsp;m/s 的障碍，这里的避开率是 <strong>80%</strong>。和仿真的差距来自延迟：从深度帧到达，到电机执行重规划后的指令，障碍已经移动了，机器人执行的是一个稍微过时的世界的计划。'>
-          Here the same 1&nbsp;m/s obstacle is cleared <strong>80%</strong> of the time. The gap to
-          simulation is latency: between the depth frame arriving and the motors acting on the replanned
-          command, the obstacle has already moved, and the plan the robot executes is a plan for a world a
-          moment out of date.
+        <p style="margin-top:22px" data-zh='同样 1&nbsp;m/s 的障碍，真机避障成功率为 <strong>80%</strong>。与仿真的差距来自感知到执行的延迟：所执行的计划对应的是已经过时的世界状态。'>
+          The same 1&nbsp;m/s obstacle is avoided <strong>80%</strong> of the time. The gap to simulation is
+          sensing-to-actuation latency: the plan being executed corresponds to a world state already out of
+          date.
         </p>
-        <p data-zh='剩下的 20% 不是碰撞。机器人停下来等障碍过去。两种设置下全程零碰撞。'>
-          The other 20% is not a collision. The robot stops and waits for the obstacle to pass. Across both
-          settings there were no collisions at all.
-        </p>
-        <p data-zh='这个“等”是代价设计的结果，不是 bug。风险项刻意在相邻采样路径之间累加，好让一次漏掉的碰撞预测没法蒙混过关。有东西横穿走廊时，整束采样一起变成高风险，没有候选能过阈值，规划器就把速度收到接近零，直到路重新空出来。把这一项放松可以换来更短的路径，代价是安全性 &mdash; 人形机器人在真机上，我宁可它等。'>
-          That waiting behaviour is a consequence of the cost design rather than a bug. Risk is accumulated
-          across neighbouring sampled paths on purpose, so that a single missed collision prediction cannot
-          slip through. When something crosses the corridor the whole sampled fan goes high-risk at once, no
-          candidate clears the threshold, and the planner settles on near-zero velocity until the way is
-          clear. Loosening that term buys shorter paths and costs safety &mdash; for a humanoid on hardware I
-          would rather it wait.
+        <p data-zh='其余 20% 为原地等待而非碰撞。风险聚合使整束采样同时越过阈值，速度收敛至接近零，直至路径重新可通行。两种设置下均无碰撞。'>
+          The remaining 20% is the planner holding position rather than colliding. Risk aggregation drives
+          the entire sampled fan above threshold, and velocity settles near zero until the path clears. No
+          collisions occurred in either setting.
         </p>
       </section>
 
       <section class="section scroll-animate">
         <h2 data-zh='真机 · 无线'>On hardware, untethered</h2>
-        <p data-zh='然后线拔掉了。感知和规划搬到机器人自己带的计算机上，还走空口的是操作员那条链路，不是控制回路。这带来两个变化。整条链路现在必须塞进机器人自带的算力里、并且仍然按时闭环 &mdash; 没有更大的机器可以兜底。另外机器人不再被一根线的半径框住，可以被指向房间里任何一个目标点，然后自己穿过路上碰到的东西。'>
-          Then the cable came off. Perception and planning moved onto the computer the robot carries, and
-          what still goes over the air is the operator&rsquo;s link rather than the control loop. Two things
-          change with that. The whole chain now has to fit inside the compute the robot has and still close
-          at rate &mdash; there is no bigger machine to fall back on. And the robot is no longer working
-          inside the radius of a cable, so it can be sent at a goal anywhere in the room and walk through
-          whatever happens to be in the way.
+        <p data-zh='随后将感知与规划迁移至机载算力并去除线缆，无线链路承载操作指令而非控制回路。整条流程需在机载算力预算内按时闭环，作业范围不再受线缆长度限制。'>
+          Perception and planning were then moved onto the robot&rsquo;s onboard compute and the cable
+          removed; the wireless link carries operator commands rather than the control loop. The full
+          pipeline has to close at rate within the onboard compute budget, and the working range is no
+          longer bounded by the tether.
         </p>
 
         <div class="project-media">
           <video src="../images/fdm-untethered-goal.mp4" poster="../images/poster-fdm-untethered-goal.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='什么都没连着的情况下导航到目标点。开头那台笔记本上显示的是建图用的点云。悬停或点击播放。'>
-          Navigating to a goal with nothing attached. The laptop in the opening shot is showing the point
-          cloud the map is built from. Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='无线状态下导航至目标点；笔记本上显示的是建图所用的点云。'>
+          Untethered navigation to a goal; the laptop shows the source point cloud.
         </div>
 
         <div class="project-media" style="margin-top:26px">
           <video src="../images/fdm-untethered-avoid.mp4" poster="../images/poster-fdm-untethered-avoid.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='同样的避障行为，脱开线之后，在一片有人和设备的实验室地面上。悬停或点击播放。'>
-          The same avoidance behaviour off the cable, across a working lab floor with people and equipment
-          around it. Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='无线状态下的避障，场地为正在使用中的实验室地面。'>
+          Obstacle avoidance untethered, on an occupied lab floor.
         </div>
       </section>
 
       <section class="section scroll-animate">
-        <h2 data-zh='把语义层接到机器人上'>Carrying the semantic layer onto the robot</h2>
-        <p data-zh='FDM 同时也是这套分层导航栈的 action expert。在机器人上，语义层跑的是 <strong>Qwen-3-8B-VL</strong>：它读指令和当前相机画面，输出一个像素坐标形式的目标点。这个点被投影到机器人本体坐标系下成为路点，交给 FDM，由它转成机器实际执行得了的速度指令。'>
-          The FDM also serves as the action expert for the layered navigation stack. On the robot the
-          semantic layer runs on <strong>Qwen-3-8B-VL</strong>: it reads the instruction together with the
-          current camera view and returns a goal as a pixel coordinate. That point is projected into the
-          robot&rsquo;s body frame as a waypoint and handed to the FDM, which turns it into velocity
-          commands the machine can actually execute.
+        <h2 data-zh='语义层'>Semantic layer</h2>
+        <p data-zh='该规划器同时作为分层导航栈的 action expert。语义层运行 <strong>Qwen-3-8B-VL</strong>，输入指令与当前相机画面，输出像素坐标形式的目标点；该点投影至本体坐标系形成路点后交由规划器执行。'>
+          The planner also serves as the action expert for the layered navigation stack. The semantic layer
+          runs <strong>Qwen-3-8B-VL</strong>: it takes the instruction and the current camera view and
+          returns a goal as a pixel coordinate, which is projected into the body frame as a waypoint and
+          passed to the planner.
         </p>
-        <p data-zh='这个分工是刻意的。语言模型决定<em>去哪</em>，而且允许它慢；它输出的点不被假定为可达。关于<em>机器人到不到得了</em>的一切 &mdash; 地面长什么样、身体被这样要求会怎么动、什么时候该等 &mdash; 都留在下面那层，那层本来就按时跑着，也已经在这台机器上验证过。'>
-          The division of labour is deliberate. The language model decides <em>where</em> to go and is
-          allowed to be slow about it; nothing it emits is trusted to be reachable. Everything about
-          <em>whether the robot can get there</em> &mdash; what the ground looks like, what the body will do
-          if asked, when to wait &mdash; stays with the planner underneath, which already runs at rate and
-          is already verified on this robot.
+        <p data-zh='分层是刻意的：语言模型只负责确定目标，无需运行在控制频率上，其输出也不被假定为可达；可通行性、平台能力与时序约束仍由下层规划器负责。'>
+          The separation is deliberate. The language model determines the goal, is not required to run at
+          control rate, and its output is not assumed reachable. Traversability, platform capability and
+          timing remain with the planner beneath it.
         </p>
 
         <div class="project-media">
           <video src="../images/fdm-semantic-console.mp4" poster="../images/poster-fdm-semantic-console.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='一条完整指令，从头到尾。左边是机器人看到的，右边是下指令的界面 &mdash; 这次输入的是“走到棕色箱子旁边”。先向模型要一个目标点，确认之后才放行机器人。悬停或点击播放。'>
-          A whole instruction, end to end. Left, what the robot sees; right, the console where the
-          instruction goes in &mdash; here <span lang="zh-CN">走到棕色箱子旁边</span>, &ldquo;go and stand
-          next to the brown box.&rdquo; The model is asked for a goal point first and only then is the robot
-          allowed to move. Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='一条指令的完整链路。左为机器人视角，右为操作台，输入指令“走到棕色箱子旁边”。先向模型请求目标点，确认后再放行执行。'>
+          One instruction end to end. Left, the robot&rsquo;s view; right, the operator console, with the
+          instruction <span lang="zh-CN">走到棕色箱子旁边</span> (&ldquo;stand next to the brown
+          box&rdquo;). A goal point is requested first, and execution is enabled only after it is confirmed.
         </div>
 
         <div class="project-media" style="margin-top:26px">
           <video src="../images/fdm-semantic.mp4" poster="../images/poster-fdm-semantic.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='目标由一句话给出，而不是给一个坐标。悬停或点击播放。'>
-          Driving to a goal named in language rather than given as a coordinate. Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='目标以语言指定，而非坐标。'>
+          Navigation to a goal specified in language rather than as a coordinate.
         </div>
       </section>
 
       <section class="section scroll-animate">
-        <h2 data-zh='三维地形，以及规划器不知道的事'>3-D terrain, and what the planner does not know</h2>
-        <p data-zh='这个模型预测的是一条路径和一个失败概率。这两样都没提到脚。把它指向一片梅花桩，它会找出一条穿过这片区域的路 &mdash; 但它没有任何关于脚该落在哪的表示，能过去这件事完全是下面那层运动策略干的。'>
-          What this model predicts is a path and a probability of failing. Neither of those says anything
-          about feet. Point it at a field of stepping stones and it will find a way across the field &mdash;
-          but it has no representation of where a foot should land, and getting across at all is entirely
-          the work of the locomotion policy underneath it.
+        <h2 data-zh='三维地形上的局限'>Limits on 3-D terrain</h2>
+        <p data-zh='模型输出的是路径与失败概率，二者均不包含落脚点信息。在梅花桩地形上，规划器能给出可行路径，但通过本身完全依赖下层运动策略——机器人时常从桩缝之间穿过，而非踩在桩顶。'>
+          The model predicts a path and a failure probability; neither encodes foot placement. Across a
+          stepping-stone field the planner produces a viable route, but traversal itself is entirely the
+          responsibility of the locomotion policy beneath it &mdash; the robot frequently passes between
+          posts rather than stepping on them.
         </p>
 
         <div class="project-media">
           <video src="../images/fdm-terrain.mp4" poster="../images/poster-fdm-terrain.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='穿过梅花桩地形，左边是高程图。悬停或点击播放。'>
-          Crossing a stepping-stone field, with the elevation map on the left. Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='穿越梅花桩地形，左为高程图。'>
+          Traversing a stepping-stone field; elevation map on the left.
         </div>
 
-        <p style="margin-top:22px" data-zh='盯着桩子看会发现，机器人有时候是从桩<em>缝</em>里走过去的，而不是踩着桩顶。路径没错。落脚点从一开始就不在这一层被问的问题里，所以这一层本来也不会去选它们。'>
-          Watch the stones closely and the robot sometimes walks <em>between</em> the posts rather than over
-          their tops. The path was fine. The footholds were never part of the question being asked, so
-          nothing in this layer was ever going to choose them.
-        </p>
-        <p data-zh='这个缺口就是我去训练下一页那个运动策略的原因。它把落脚点选择放进了网络里，于是机器人是在挑该踩哪，而不是在硬扛路径丢给它的地形。'>
-          That gap is why I went and trained the locomotion policy on the next page. It puts foothold
-          selection inside the network, so the robot is picking where to step instead of surviving whatever
-          the path hands it.
+        <p style="margin-top:22px" data-zh='这一局限直接促成了下一页的感知运动策略，该策略将落脚点选择纳入网络内部。'>
+          This limitation motivated the perceptive locomotion policy on the next page, which brings foothold
+          selection inside the network.
         </p>
         <div class="project-links">
           <a class="project-link" href="../ame-2/" data-zh='感知运动控制 <i class="fas fa-arrow-right"></i>'>Perceptive locomotion <i class="fas fa-arrow-right"></i></a>
@@ -241,8 +198,8 @@
       <section class="section scroll-animate">
         <h2 data-zh='补充'>Notes</h2>
         <ul class="compact-list">
-          <li data-zh='人形机器人质心更高、支撑域更小、自由度更多，和这类规划器通常面向的四足不一样，所以观测空间、指令采样范围和终止条件都得重新设定。'>A humanoid carries a higher centre of mass, a smaller support polygon and more degrees of freedom than the quadrupeds this class of planner is usually built for, so the observation space, command sampling ranges and termination conditions all needed revisiting.</li>
-          <li data-zh='模型的预测和下面那层运动策略是绑定的：换掉那套策略，轨迹就得重新采集、模型重新训练。这两层没法独立替换。'>The model's predictions are tied to the locomotion policy underneath it: change that policy and the trajectories have to be re-collected and the model retrained. The two layers cannot be swapped independently.</li>
+          <li data-zh='相比这类规划器通常面向的四足平台，人形本体质心更高、支撑域更小、自由度更多；观测空间、指令采样范围与终止条件均据此重新设定。'>Relative to the quadrupeds this class of planner is usually built for, the humanoid has a higher centre of mass, a smaller support polygon and more degrees of freedom; observation space, command sampling ranges and termination conditions were revised accordingly.</li>
+          <li data-zh='模型与下层运动策略耦合：更换策略需重新采集轨迹并重新训练，两层无法独立替换。'>The model is coupled to the locomotion policy beneath it: changing that policy requires re-collecting trajectories and retraining. The two layers cannot be swapped independently.</li>
         </ul>
       </section>
 

@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Attention-Based Perceptive Locomotion on a Humanoid — Qihan Shan</title>
     <meta name="author" content="Qihan Shan">
-    <meta name="description" content="An attention-based perceptive locomotion policy for the AgiBot X2 humanoid: an elevation map with per-cell uncertainty, teacher-student distillation, and traversal of stairs, blocks and rough ground in Isaac Lab.">
+    <meta name="description" content="An attention-based perceptive locomotion policy for the AgiBot X2 humanoid: an elevation map with per-cell uncertainty, teacher-student distillation, and traversal of stepping stones, stairs, slopes and raised platforms in Isaac Lab.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -24,12 +24,12 @@
       <header class="header">
         <div class="project-links" style="margin-bottom:18px">
           <a class="project-link" href="../" data-zh='<i class="fas fa-arrow-left"></i> 单琪涵'><i class="fas fa-arrow-left"></i> Qihan Shan</a>
-          <a class="project-link lang-toggle" href="?lang=zh" role="button" data-title-zh="注意力驱动的人形机器人感知运动控制 — 单琪涵"><i class="fas fa-language"></i> 中文</a>
+          <a class="project-link lang-toggle" href="?lang=zh" role="button" data-title-zh="注意力驱动的感知运动控制 — 单琪涵"><i class="fas fa-language"></i> 中文</a>
         </div>
 
         <h1 class="name" data-zh='注意力驱动的感知运动控制'>Attention-Based Perceptive Locomotion</h1>
-        <p class="intro" data-zh='让一台带臂人形机器人学会往哪落脚，而地图是它自己建的。'>
-          Teaching an armed humanoid where to put its feet, from a map it builds itself.
+        <p class="intro" data-zh='面向带臂人形机器人的感知运动策略，运行于自建高程图之上。'>
+          A perceptive locomotion policy for an armed humanoid, operating on a map it builds itself.
         </p>
         <p data-zh='智元机器人 &middot; 运动智能组 &middot; 2026 &middot; <strong>Isaac Lab 仿真</strong>'>
           AgiBot &middot; Motion Intelligence Group &middot; 2026 &middot; <strong>Isaac Lab, simulation</strong>
@@ -38,90 +38,83 @@
 
       <section class="section scroll-animate">
         <h2 data-zh='概述'>Overview</h2>
-        <p data-zh='感知运动策略要靠自己建的地图决定往哪落脚，而这张图在任何一步里绝大部分都是无关的。这套策略学的是该看哪：注意力模块用机器人自身状态拼成的 query 给局部地图特征加权，使网络集中在与下一个落脚点有关的那片地面上。再往下，建图流程把深度图变成一张带逐格不确定性的高程栅格，于是遮挡被表示成“未知”，而不是一片确信的平地。'>
-          A perceptive locomotion policy has to decide where to put its feet using a map it built itself,
-          and most of that map is irrelevant at any given step. This one learns what to look at: an
-          attention module weights local map features against a query assembled from the robot's own state,
-          so the network concentrates on the patch of ground that matters for the next foothold. Underneath
-          it, the mapping pipeline turns depth images into an elevation grid carrying a per-cell
-          uncertainty, so an occlusion is represented as something unknown rather than as confident flat
+        <p data-zh='感知运动策略需要在自建地图上选择落脚点，而该地图在任一步中大部分是无关的。注意力模块以机器人自身状态构成的 query 对局部地图特征加权，使网络集中于与下一落脚点相关的地形。建图流程将深度图投影为带逐格不确定性的高程栅格，遮挡因此表示为未知，而非确信的平地。'>
+          A perceptive locomotion policy has to select footholds from a map it builds itself, most of which
+          is irrelevant at any given step. An attention module weights local map features against a query
+          assembled from the robot&rsquo;s own state, concentrating the network on the terrain relevant to
+          the next foothold. The mapping pipeline projects depth images into an elevation grid carrying a
+          per-cell uncertainty, so occlusions are represented as unknown rather than as confident flat
           ground.
         </p>
-        <p data-zh='我在 Isaac Lab 里针对 X2 训练它 &mdash; 相比这类策略通常面向的四足，它质心更高、支撑域更小，而且手臂还会摆。'>
-          I trained it in Isaac Lab for the X2 &mdash; a taller centre of mass than the quadrupeds this
-          class of policy is usually built for, a smaller support polygon, and arms that swing.
+        <p data-zh='在 Isaac Lab 中针对 X2 训练：相比这类策略通常面向的四足平台，其质心更高、支撑域更小，且手臂存在摆动。'>
+          Trained in Isaac Lab for the X2: a higher centre of mass, a smaller support polygon and swinging
+          arms relative to the quadrupeds this class of policy is usually built for.
         </p>
       </section>
 
       <section class="section scroll-animate">
-        <h2 data-zh='原理'>How it works</h2>
+        <h2 data-zh='方法'>Method</h2>
         <ul class="compact-list">
-          <li data-zh='<strong>注意力式地图编码</strong> &mdash; 由地图的全局特征和机器人本体感知拼成 query，用来给局部地图特征加权。于是策略关注的是下一个落脚点底下那片地面，而不是均匀地消化整张图；具体是哪一片，取决于机器人当下怎么动。'><strong>Attention map encoding</strong> &mdash; a query is assembled from the map's global features together with the robot's own proprioception, and used to weight the local map features. The policy therefore attends to the ground under the next foothold rather than consuming the whole map uniformly, and which patch that is depends on how the robot is currently moving.</li>
-          <li data-zh='<strong>不确定性作为一个通道</strong> &mdash; 深度图被投影成局部高程栅格，每一格同时带高度和置信度，再通过里程计融合到统一坐标系里。被遮挡的格子送到策略手里时标的是“未知”，而不是被填成确信的平地 &mdash; 这就是小心落脚和一脚踩空的区别。'><strong>Uncertainty as a channel</strong> &mdash; depth images are projected into a local elevation grid whose cells carry both a height and a confidence, fused into a common frame through odometry. An occluded cell arrives at the policy marked unknown instead of being filled in as confident flat ground, which is the difference between stepping carefully and stepping into a hole.</li>
-          <li data-zh='<strong>teacher&ndash;student 蒸馏</strong> &mdash; teacher 用真值高程图训练。student 只拿得到自己建的地图和一段自身近期状态，学着对上 teacher 的动作，同时仍在自己的奖励下继续变好。'><strong>Teacher&ndash;student distillation</strong> &mdash; the teacher trains against ground-truth elevation maps. The student is given nothing but the map it builds itself and a window of its own recent state, and learns to match the teacher's actions while still improving under its own reward.</li>
-          <li data-zh='<strong>频率</strong> &mdash; 策略以 50&nbsp;Hz 运行，关节目标以 400&nbsp;Hz 跟踪。'><strong>Rates</strong> &mdash; the policy runs at 50&nbsp;Hz, with its joint targets tracked at 400&nbsp;Hz.</li>
-          <li data-zh='<strong>地形课程</strong> &mdash; 密集、攀爬、稀疏三类地形，按实测通过率升降级。'><strong>Terrain curriculum</strong> &mdash; dense, climbing and sparse families, promoted and demoted on measured success.</li>
+          <li data-zh='<strong>注意力式地图编码</strong> &mdash; 由地图全局特征与本体感知构成的 query 对局部地图特征加权，使策略关注下一落脚点所在的地形，而非均匀处理整张地图。'><strong>Attention map encoding</strong> &mdash; a query formed from global map features and proprioception weights the local map features, so the policy attends to the terrain under the next foothold rather than consuming the map uniformly.</li>
+          <li data-zh='<strong>不确定性通道</strong> &mdash; 深度图投影为局部高程栅格，每格同时携带高度与置信度，并经里程计融合至统一坐标系；被遮挡的格子以未知状态送入策略。'><strong>Uncertainty channel</strong> &mdash; depth images are projected into a local elevation grid carrying height and confidence per cell, fused into a common frame through odometry. Occluded cells reach the policy marked unknown.</li>
+          <li data-zh='<strong>teacher&ndash;student 蒸馏</strong> &mdash; teacher 基于真值高程图训练；student 仅获得自身在线建图与一段近期状态，在拟合 teacher 动作的同时继续在自身奖励下优化。'><strong>Teacher&ndash;student distillation</strong> &mdash; the teacher trains on ground-truth elevation maps; the student receives only its own online map and a window of recent state, matching the teacher&rsquo;s actions while continuing to improve under its own reward.</li>
+          <li data-zh='<strong>频率</strong> &mdash; 策略 50&nbsp;Hz，关节目标 400&nbsp;Hz 跟踪。'><strong>Rates</strong> &mdash; policy at 50&nbsp;Hz, joint targets tracked at 400&nbsp;Hz.</li>
+          <li data-zh='<strong>地形课程</strong> &mdash; 密集、攀爬、稀疏三类，按实测通过率升降级。'><strong>Terrain curriculum</strong> &mdash; dense, climbing and sparse families, promoted and demoted on measured success.</li>
         </ul>
       </section>
 
       <section class="section scroll-animate">
         <h2 data-zh='仿真'>In simulation</h2>
+        <p data-zh='策略可连续跨越<strong>梅花桩、上下楼梯、上下斜坡与离散高台</strong>，并在到达目标点时保持指定朝向。'>
+          The policy traverses <strong>stepping stones, stairs and slopes in both directions, and discrete
+          raised platforms</strong>, arriving at each goal on the commanded heading.
+        </p>
         <div class="project-media">
           <video src="../images/proj-ame2.mp4" poster="../images/poster-ame2.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='左边是策略实际在用的高程图，由机器人自己的深度图建出来；右边是同一次运行在仿真器里的样子。悬停或点击播放。'>
-          Left, the elevation map the policy is actually working from, built from the robot's own depth
-          images; right, the same run in the simulator. Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='左为策略实际使用的高程图，由机器人自身深度图建出；右为同一次运行在仿真器中的视角。悬停或点击播放。'>
+          Left, the elevation map the policy operates on, built from the robot&rsquo;s own depth images;
+          right, the same run in the simulator. Hover or tap to play.
         </div>
 
-        <p style="margin-top:22px" data-zh='策略能跨越<strong>梅花桩、上下楼梯、上下斜坡，以及离散高台</strong>，并且在到达每个目标点时保持指定朝向。'>
-          The policy crosses <strong>stepping stones, stairs and slopes in both directions, and discrete
-          raised platforms</strong>, and arrives at each goal on the commanded heading.
-        </p>
-        <p data-zh='最后这一点比听上去难。在开阔地面上机器人可以原地转身来纠正朝向；在一片梅花桩上，根本没有能让它这么做的落脚位置。朝向只能从落脚点本身长出来 &mdash; 策略挑了哪几块桩、按什么顺序踩、把这个转角分摊在哪几步上 &mdash; 也就是说朝向不再是最后去修的量，而是和“往哪落脚”同一个决策的一部分。'>
-          That last part is harder than it sounds. On open ground a robot can turn on the spot to fix its
-          heading; on a field of stepping stones there is nowhere to put a foot that would let it. The
-          heading has to fall out of the footholds themselves &mdash; which stones the policy picks, in
-          which order, and how it distributes the turn across them &mdash; which means orientation stops
-          being something you correct at the end and becomes part of the same decision as where to step.
+        <p style="margin-top:22px" data-zh='朝向是其中的难点。稀疏落脚点上没有可供原地转身的连续地面，因此朝向必须从落脚点选择本身产生——选择哪些桩、按何顺序，以及转角如何分摊到各步之间。'>
+          Heading is the non-trivial part. On sparse footholds there is no continuous ground on which to
+          turn in place, so orientation has to emerge from foothold selection itself: which stones are
+          chosen, in what order, and how the turn is distributed across them.
         </p>
 
         <div class="project-media" style="margin-top:26px">
           <video src="../images/ame2-blocks.mp4" poster="../images/poster-ame2-blocks.jpg" loop muted playsinline preload="none"></video>
         </div>
-        <div class="project-meta" style="margin-top:10px" data-zh='更长的一段：开阔地面、碎石区、离散台阶阵，以及金字塔楼梯。悬停或点击播放。'>
-          A longer run over open ground, a gravel patch, a discrete stepping-block field and pyramid stairs.
-          Hover or tap to play.
+        <div class="project-meta" style="margin-top:10px" data-zh='更长的一段运行：开阔地面、碎石区、离散台阶阵与金字塔楼梯。'>
+          A longer run across open ground, gravel, a discrete stepping-block field and pyramid stairs.
         </div>
       </section>
 
       <section class="section scroll-animate">
         <h2 data-zh='结果'>Results</h2>
-        <p data-zh='在未见过的测试地形上，策略的通过率是 <strong>teacher 90%，student 75%</strong>。'>
-          On unseen test terrain the policy reaches <strong>90% success as a teacher and 75% as a
-          student</strong>.
+        <p data-zh='未见地形上的通过率：<strong>teacher 90%，student 75%</strong>。'>
+          On unseen test terrain: <strong>90% success as teacher, 75% as student</strong>.
         </p>
-        <p data-zh='有意思的是这两者之间的差。teacher 是在真值上规划的；student 是在自己用深度图建出来的地图上规划的，而它对那张图的每一处判断错误，最后都会变成一次踩空。这 15 个点就是感知的代价，也是下一步该攻的数字 &mdash; 在这里把遮挡下的建图做好，收益比把策略做好更大。'>
-          The gap between those two is the interesting part. The teacher plans on ground truth; the student
-          plans on a map it built from its own depth images, and everything it gets wrong about that map
-          shows up as a missed foothold. Fifteen points is what the perception costs, and it is the number
-          to attack next &mdash; better mapping under occlusion buys more here than a better policy would.
+        <p data-zh='两者之差即感知的代价。teacher 基于真值规划，student 基于自身深度图建出的地图规划，建图误差最终体现为踩空。因此改进遮挡条件下的建图，收益高于继续优化策略本身。'>
+          The gap between the two is the cost of perception. The teacher plans on ground truth; the student
+          plans on a map built from its own depth images, and mapping error surfaces as missed footholds.
+          Improving mapping under occlusion is therefore the higher-return direction.
         </p>
       </section>
 
       <section class="section scroll-animate">
-        <h2 data-zh='楼梯上出的问题'>What went wrong on stairs</h2>
-        <p data-zh='最有信息量的失败出在楼梯上。连续爬几级时，策略的落脚位置每上一级就偏一点。原因不在控制器：局部高程图是通过里程计融合到全局坐标系的，里程计一漂，地图就相对真实楼梯滑动，于是策略是在把脚精确地放到台阶边缘上 &mdash; 只不过那些边缘已经不在它以为的位置了。下楼梯则带来相关的步态失稳。'>
-          The most instructive failure was on stairs. Climbing several steps in sequence, the policy's
-          foot placement drifted a little further off with each one. The cause was not the controller: the
-          local elevation map is fused into a global frame through odometry, and as odometry drifted the
-          map slid relative to the real staircase, so the policy was placing feet accurately onto step
-          edges that were no longer where it believed them to be. Descending stairs produced a related gait
-          instability.
+        <h2 data-zh='楼梯上的失效分析'>Failure analysis on stairs</h2>
+        <p data-zh='连续上楼梯时，落脚位置逐级偏移。原因不在控制器：局部高程图经里程计融合至全局坐标系，里程计漂移导致地图相对真实楼梯发生位移，策略实际是将脚精确放置到已不在预期位置的台阶边缘上。下楼梯则表现为相关的步态失稳。'>
+          Ascending consecutive steps, foot placement drifted progressively further off. The cause was not
+          the controller: the local elevation map is fused into a global frame through odometry, and
+          odometry drift displaced the map relative to the real staircase, so feet were placed accurately
+          onto step edges that were no longer where the policy believed them to be. Descent produced a
+          related gait instability.
         </p>
-        <p data-zh='除此之外，带臂人形本体需要自己的终止条件和地形课程：给四足定义“摔倒”的那套阈值，描述不了一台带着手臂的双足。'>
-          Alongside that, an armed humanoid needed its own termination conditions and terrain curriculum:
-          the thresholds that define a fall for a quadruped do not describe one for a biped carrying arms.
+        <p data-zh='此外，带臂人形本体需要独立的终止条件与地形课程；为四足定义摔倒的阈值无法直接迁移。'>
+          An armed humanoid also required its own termination conditions and terrain curriculum; the
+          thresholds that define a fall for a quadruped do not transfer.
         </p>
         <div class="project-links">
           <a class="project-link" href="../fdm/" data-zh='导航与动态避障 <i class="fas fa-arrow-right"></i>'>Navigation and dynamic obstacle avoidance <i class="fas fa-arrow-right"></i></a>
