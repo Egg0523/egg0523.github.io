@@ -137,16 +137,19 @@
 
         <article class="project">
           <div class="project-media">
-            <video src="images/proj-dualvln.mp4" poster="images/poster-dualvln.jpg" loop muted playsinline preload="none"></video>
+            <video src="images/vln-real.mp4" poster="images/poster-vln-real.jpg" loop muted playsinline preload="none"></video>
           </div>
           <div class="project-body">
             <h3 data-zh='面向人形机器人的双系统视觉语言导航'>Dual-System Vision-and-Language Navigation for a Humanoid</h3>
-            <div class="project-meta" data-zh='智元机器人 · 运动智能组 <span class="dot">·</span> 2026 <span class="dot">·</span> 仿真'>AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> Simulation</div>
+            <div class="project-meta" data-zh='智元机器人 · 运动智能组 <span class="dot">·</span> 2026 <span class="dot">·</span> 仿真与真机'>AgiBot · Motion Intelligence Group <span class="dot">·</span> 2026 <span class="dot">·</span> Simulation and hardware</div>
             <ul>
               <li data-zh='从零搭建视觉语言导航数据管线：在 60 个 Matterport3D 场景采集 4,229 条 R2R / RxR 轨迹，把三维路径投影到第一视角图像并按深度剔除被遮挡的点，切分出 251,916 条训练样本，覆盖像素目标定位、自主视角调整与 STOP 监督。'>Built a VLN data pipeline from scratch: collected 4,229 R2R/RxR trajectories across 60 Matterport3D scenes, projected 3-D trajectories onto 2-D egocentric views with depth-based visibility filtering to discard occluded points, and segmented them into 251,916 training samples spanning pixel-goal grounding, self-directed view adjustment, and STOP supervision.</li>
               <li data-zh='以 LoRA 微调 7B 视觉语言模型，输出视野内最远可达路点的像素坐标；该点落在画面之外时，模型自行转向或俯视，直到目标可见。冻结模型后，用可学习的隐式 query 把隐状态抽出来，作为 flow-matching 网络生成 32 个稠密路点的条件。两者分别以 2 Hz 与 30 Hz 运行，慢推理不会阻塞控制回路。'>LoRA-finetuned a 7B vision-language model to emit the farthest reachable waypoint currently in view as a pixel coordinate — and, when that point falls outside the frame, to turn or look down on its own until it is visible. Freezing the model, learnable latent queries pull its hidden state out as the condition for a flow-matching network that generates 32 dense waypoints. The two run at 2 Hz and 30 Hz, so slow reasoning never blocks the control loop.</li>
-              <li data-zh='VLN-CE RxR val-unseen：<strong>SR 59.3 / SPL 51.6</strong>。'>VLN-CE RxR val-unseen: <strong>SR 59.3 / SPL 51.6</strong>.</li>
+              <li data-zh='VLN-CE RxR val-unseen：<strong>SR 59.3 / SPL 51.6</strong>；现已部署到 X2 真机，按一条自由文本指令跑通从语言到运动的完整链路。'>VLN-CE RxR val-unseen: <strong>SR 59.3 / SPL 51.6</strong>; now deployed on the X2, following a single free-text instruction from language through to motion.</li>
             </ul>
+            <div class="project-links">
+              <a class="project-link" href="vln/" data-zh='项目详情 <i class="fas fa-arrow-right"></i>'>Project page <i class="fas fa-arrow-right"></i></a>
+            </div>
           </div>
         </article>
 

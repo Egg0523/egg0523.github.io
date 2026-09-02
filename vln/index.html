@@ -1,0 +1,117 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Dual-System Vision-and-Language Navigation — Qihan Shan</title>
+    <meta name="author" content="Qihan Shan">
+    <meta name="description" content="A dual-system vision-and-language navigation stack for the AgiBot X2 humanoid: pixel-goal grounding from a 7B VLM, a flow-matching trajectory network at 30 Hz, evaluated on VLN-CE and deployed on hardware.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="../stylesheet.css">
+  </head>
+
+  <body>
+    <div class="progress-bar"></div>
+    <div class="blob1" aria-hidden="true"></div>
+    <div class="blob2" aria-hidden="true"></div>
+    <div class="blob3" aria-hidden="true"></div>
+    <button class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <div class="container">
+      <header class="header">
+        <div class="project-links" style="margin-bottom:18px">
+          <a class="project-link" href="../" data-zh='<i class="fas fa-arrow-left"></i> 单琪涵'><i class="fas fa-arrow-left"></i> Qihan Shan</a>
+          <a class="project-link lang-toggle" href="?lang=zh" role="button" data-title-zh="双系统视觉语言导航 — 单琪涵"><i class="fas fa-language"></i> 中文</a>
+        </div>
+
+        <h1 class="name" data-zh='双系统视觉语言导航'>Dual-System Vision-and-Language Navigation</h1>
+        <p class="intro" data-zh='面向 AgiBot X2 人形机器人的语言条件导航栈，从仿真到真机。'>
+          A language-conditioned navigation stack for the AgiBot X2 humanoid, from simulation to hardware.
+        </p>
+        <p data-zh='智元机器人 &middot; 运动智能组 &middot; 2026 &middot; <strong>仿真与真机</strong>'>
+          AgiBot &middot; Motion Intelligence Group &middot; 2026 &middot; <strong>Simulation and hardware</strong>
+        </p>
+      </header>
+
+      <section class="section scroll-animate">
+        <h2 data-zh='概述'>Overview</h2>
+        <p data-zh='一套把自然语言指令转成运动的导航栈，按不同频率拆成两个系统。视觉语言模型读取指令与当前画面，决定去哪；更快的轨迹网络把这个决策转成稠密路点，语义推理因此不必运行在控制频率上。'>
+          A navigation stack that takes a natural-language instruction and produces motion, split across two
+          systems running at different rates. A vision-language model reads the instruction and the current
+          view and decides where to go; a faster trajectory network turns that decision into dense
+          waypoints, so semantic reasoning never has to run at control rate.
+        </p>
+        <p data-zh='训练数据从零构建：在 60 个 Matterport3D 场景采集 4,229 条 R2R / RxR 轨迹，将三维路径投影到第一视角图像并按深度剔除被遮挡的点，切分出 251,916 条样本，覆盖像素目标定位、自主视角调整与 STOP 监督。'>
+          The training data was built from scratch: 4,229 R2R/RxR trajectories across 60 Matterport3D
+          scenes, with the 3-D paths projected onto egocentric views and depth-filtered for visibility, then
+          segmented into 251,916 samples covering pixel-goal grounding, self-directed view adjustment and
+          STOP supervision.
+        </p>
+      </section>
+
+      <section class="section scroll-animate">
+        <h2 data-zh='方法'>Method</h2>
+        <ul class="compact-list">
+          <li data-zh='<strong>像素目标定位</strong> &mdash; 以 LoRA 微调的 7B 视觉语言模型输出视野内最远可达路点的像素坐标，而不是一段文字规划。'><strong>Pixel-goal grounding</strong> &mdash; a LoRA-finetuned 7B vision-language model emits the farthest reachable waypoint currently in view as a pixel coordinate, rather than a text plan.</li>
+          <li data-zh='<strong>自主视角调整</strong> &mdash; 目标落在画面之外时，模型自行输出转向或俯视动作，直到目标可见。'><strong>Self-directed view adjustment</strong> &mdash; when the goal falls outside the frame, the model turns or looks down on its own until it is visible.</li>
+          <li data-zh='<strong>隐式 query 接口</strong> &mdash; 随后冻结该模型，由可学习的隐式 query 抽取隐状态，作为下游网络的条件，梯度不回传进视觉语言模型。'><strong>Latent-query interface</strong> &mdash; the model is then frozen; learnable latent queries pull its hidden state out as the condition for the downstream network, so no gradient crosses back into the VLM.</li>
+          <li data-zh='<strong>flow-matching 轨迹</strong> &mdash; flow-matching 网络据此条件生成 32 个稠密路点。'><strong>Flow-matching trajectories</strong> &mdash; a flow-matching network generates 32 dense waypoints from that condition.</li>
+          <li data-zh='<strong>异步频率</strong> &mdash; 两者分别以 2&nbsp;Hz 与 30&nbsp;Hz 运行，慢推理不阻塞控制回路。'><strong>Asynchronous rates</strong> &mdash; the two run at 2&nbsp;Hz and 30&nbsp;Hz, so slow reasoning never blocks the control loop.</li>
+        </ul>
+      </section>
+
+      <section class="section scroll-animate">
+        <h2 data-zh='仿真'>In simulation</h2>
+        <p data-zh='VLN-CE RxR val-unseen：<strong>SR 59.3 / SPL 51.6</strong>。'>
+          VLN-CE RxR val-unseen: <strong>SR 59.3 / SPL 51.6</strong>.
+        </p>
+        <div class="project-media">
+          <video src="../images/vln-sim.mp4" poster="../images/poster-vln-sim.jpg" loop muted playsinline preload="none"></video>
+        </div>
+        <div class="project-meta" style="margin-top:10px" data-zh='左为第一视角画面与该回合的指令；中为俯视路径；右为 flow-matching 输出的 32 个路点。悬停或点击播放。'>
+          Left, the egocentric view with the instruction for the episode; centre, the top-down path; right,
+          the flow-matching waypoint fan. Hover or tap to play.
+        </div>
+      </section>
+
+      <section class="section scroll-animate">
+        <h2 data-zh='真机'>On hardware</h2>
+        <p data-zh='同一套系统现在跑在 X2 上。指令以自由文本输入，模型给出的目标投影到本体坐标系形成路点，交由局部规划器在自身安全限幅下转成速度指令。'>
+          The same stack now runs on the X2. The instruction goes in as free text; the model&rsquo;s goal is
+          projected into the body frame as a waypoint and handed to the local planner, which turns it into
+          velocity commands under its own safety limits.
+        </p>
+        <div class="project-media">
+          <video src="../images/vln-real.mp4" poster="../images/poster-vln-real.jpg" loop muted playsinline preload="none"></video>
+        </div>
+        <div class="project-meta" style="margin-top:10px" data-zh='本段执行的指令是「Walk past the black box, turn right at the black chair, and stop in front of the white chair.」开头几秒是操作台画面。'>
+          The instruction for this run is &ldquo;Walk past the black box, turn right at the black chair, and
+          stop in front of the white chair.&rdquo; The first few seconds show the operator console.
+        </div>
+        <p style="margin-top:22px" data-zh='下游那一层 &mdash; 把目标点转成机器人真正走得出来的速度指令 &mdash; 在另一页。'>
+          The layer underneath &mdash; the one that turns a goal point into velocity commands the robot can
+          actually execute &mdash; is on its own page.
+        </p>
+        <div class="project-links">
+          <a class="project-link" href="../fdm/" data-zh='前向动力学感知导航 <i class="fas fa-arrow-right"></i>'>Perceptive forward-dynamics navigation <i class="fas fa-arrow-right"></i></a>
+        </div>
+      </section>
+
+      <section class="section scroll-animate">
+        <h2 data-zh='联系方式'>Contact</h2>
+        <p class="contact-line">
+          <a href="mailto:shan6@engineering.upenn.edu">shan6@engineering.upenn.edu</a>
+        </p>
+      </section>
+
+      <footer>
+        <p data-zh='最近更新：2026 年 9 月'>Last updated: September 2026</p>
+      </footer>
+    </div>
+
+    <script src="../script.js"></script>
+  </body>
+</html>
