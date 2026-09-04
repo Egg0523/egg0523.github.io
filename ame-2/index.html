@@ -104,6 +104,21 @@
       </section>
 
       <section class="section scroll-animate">
+        <h2 data-zh='重训 student 策略'>Retraining the student</h2>
+        <p data-zh='随后为 student 策略加入显式的上半身姿态约束重新训练。在同一套地形上，得到的步态相比第一版的 teacher 有明显改进。'>
+          The student was then retrained with an explicit upper-body posture constraint. Across the same
+          terrain the resulting gait is a clear improvement on the first version&rsquo;s teacher.
+        </p>
+        <div class="project-media">
+          <video src="../images/ame2-student.mp4" poster="../images/poster-ame2-student.jpg" loop muted playsinline preload="none"></video>
+        </div>
+        <div class="project-meta" style="margin-top:10px" data-zh='重训后的 student 策略连续跨越金字塔楼梯、离散台阶阵、碎石区与阶梯迷宫。'>
+          The retrained student crossing pyramid stairs, a discrete raised-block field, gravel and a stair
+          maze.
+        </div>
+      </section>
+
+      <section class="section scroll-animate">
         <h2 data-zh='楼梯上的失效分析'>Failure analysis on stairs</h2>
         <p data-zh='连续上楼梯时，落脚位置逐级偏移。原因不在控制器：局部高程图经里程计融合至全局坐标系，里程计漂移导致地图相对真实楼梯发生位移，策略实际是将脚精确放置到已不在预期位置的台阶边缘上。下楼梯则表现为相关的步态失稳。'>
           Ascending consecutive steps, foot placement drifted progressively further off. The cause was not
