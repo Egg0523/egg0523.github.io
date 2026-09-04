@@ -21,3 +21,6 @@ package-lock.json
 
 # Ignore files created by MacOS
 .DS_Store
+
+# Cowork drops delivered files here; not part of the site
+Claude outputs/
